@@ -4,12 +4,12 @@ from . import views
 app_name = 'characters'
 
 urlpatterns = [
-    # Character URLs
-    path('', views.CharacterListView.as_view(), name='character_list'),
-    path('create/', views.CharacterCreateView.as_view(), name='character_create'),
-    path('<int:pk>/', views.CharacterDetailView.as_view(), name='character_detail'),
-    path('<int:pk>/update/', views.CharacterUpdateView.as_view(), name='character_update'),
-    path('<int:pk>/delete/', views.CharacterDeleteView.as_view(), name='character_delete'),
+    # Character URLs with API prefix
+    path('api/characters/', views.CharacterListView.as_view(), name='character_list'),
+    path('api/characters/create/', views.CharacterCreateView.as_view(), name='character_create'),
+    path('api/characters/<int:pk>/', views.CharacterDetailView.as_view(), name='character_detail'),
+    path('api/characters/<int:pk>/update/', views.CharacterUpdateView.as_view(), name='character_update'),
+    path('api/characters/<int:pk>/delete/', views.CharacterDeleteView.as_view(), name='character_delete'),
 
     # Character search
     path('search/', views.CharacterSearchView.as_view(), name='character_search'),
@@ -32,11 +32,6 @@ urlpatterns = [
     path('<int:character_pk>/images/<int:pk>/set-primary/', views.CharacterImageMakePrimaryView.as_view(), name='set_primary_image'),
     path('<int:pk>/images/reorder/', views.CharacterImageReorderView.as_view(), name='image_reorder'),
 
-    # Character rating and comments
-    path('<int:pk>/rate/', views.rate_character, name='rate_character'),
-    path('<int:pk>/comment/', views.add_character_comment, name='add_comment'),
-    path('comments/<int:pk>/reply/', views.add_comment_reply, name='add_reply'),
-    path('comments/<int:pk>/delete/', views.delete_comment, name='delete_comment'),
 
     # Character comments URLs
     path('<int:pk>/comments/add/', views.CharacterCommentCreateView.as_view(), name='add_comment'),
