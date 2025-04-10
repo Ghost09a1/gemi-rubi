@@ -120,6 +120,21 @@ class CharacterDetailView(DetailView):
     template_name = 'characters/character_detail.html'
     context_object_name = 'character'
 
+    def get_object(self, queryset=None):
+        """
+        Check if the character is visible to the current user
+        """
+        obj = super().get_object(queryset)
+
+        if obj.is_friends_only:
+            # If character is friends-only, check if the user is authenticated and a friend
+            if not self.request.user.is_authenticated or not obj.user.is_friend_with(self.request.user):
+                raise Http404(_("Character not found"))
+        elif not obj.public and not self.request.user == obj.user:
+            raise Http404(_("Character not found"))
+
+        return obj
+
     def get_queryset(self):
         """
         Only return characters that are visible to the current user
@@ -128,13 +143,15 @@ class CharacterDetailView(DetailView):
 
         if self.request.user.is_authenticated:
             # Authenticated users can see their own characters and public/friends-only characters
-            return base_qs.filter(
+            return base_qs.filter(Q(
                 Q(user=self.request.user) |  # Own characters
                 Q(public=True) |  # Public characters
-                (Q(is_friends_only=True) & Q(user__friendships__friend=self.request.user))  # Friends' characters
-            ).distinct()
+                (Q(is_friends_only=True) & Q(user__friendships__friend=self.request.user))
+            ))
         else:
-            # Unauthenticated users can only see public characters
+            """
+            Unauthenticated users can only see public characters
+            """
             return base_qs.filter(public=True)
 
     def get_context_data(self, **kwargs):
@@ -182,15 +199,6 @@ class CharacterDetailView(DetailView):
             context['user_rating'] = self.object.get_user_rating(self.request.user)
 
         return context
-
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-
-        # If character is not public, check if the user is the owner
-        if not obj.public and self.request.user != obj.user:
-            raise Http404(_("Character not found"))
-
-        return obj
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

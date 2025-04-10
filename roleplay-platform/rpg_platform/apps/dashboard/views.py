@@ -35,7 +35,7 @@ def home(request):
     # Chat stats - with error handling
     try:
         context['chatroom_count'] = ChatRoom.objects.filter(participants=user).count()
-        context['chat_rooms'] = ChatRoom.objects.filter(participants=user).prefetch_related('participants').order_by('-updated_at')[:5]
+        context['chat_rooms'] = ChatRoom.objects.filter(participants=user).prefetch_related('participants').order_by('-updated_at')[:5] #corrected line
     except (OperationalError, ProgrammingError) as e:
         logger.warning(f"Error retrieving chat room data: {str(e)}")
         context['chatroom_count'] = 0

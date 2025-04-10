@@ -17,7 +17,7 @@ urlpatterns = [
 
     # Feature-specific URLs
     path('characters/', include('rpg_platform.apps.characters.urls')),
-    path('my_messages/', include('rpg_platform.apps.messages.urls')),
+    path('messages/', include('rpg_platform.apps.messages.urls')),
     path('notifications/', include('rpg_platform.apps.notifications.urls')),
     path('moderation/', include('rpg_platform.apps.moderation.urls')),
     path('recommendations/', include('rpg_platform.apps.recommendations.urls')),

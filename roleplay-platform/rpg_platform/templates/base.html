@@ -339,12 +339,6 @@
                             </a>
                         </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.app_name == 'messages' %}active{% endif %}" href="{% url 'messages:room_list' %}">
-                                <i class="fas fa-comments"></i> {% trans "Chat" %}
-                            </a>
-                        </li>
-
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle {% if request.resolver_match.app_name == 'accounts' and 'dating' in request.path %}active{% endif %}" href="#" id="datingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-heart"></i> {% trans "Dating" %}
@@ -527,7 +521,6 @@
                     <ul class="footer-links">
                         <li><a href="{% url 'dashboard:home' %}">{% trans "Home" %}</a></li>
                         <li><a href="{% url 'characters:character_list' %}">{% trans "Characters" %}</a></li>
-                        <li><a href="{% url 'messages:room_list' %}">{% trans "Chat" %}</a></li>
                         <li><a href="{% url 'recommendations:character_recommendations' %}">{% trans "Discover" %}</a></li>
                     </ul>
                 </div>
