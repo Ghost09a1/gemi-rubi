@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
+{% load form_tags %}
 
 {% block title %}{% if form.instance.pk %}
     {% trans "Edit Character" %}
@@ -74,7 +75,7 @@
             </div>
             {% else %}
               <div class="invalid-feedback">
-                {% endfor %}
+                <!-- Empty feedback for validation -->
               </div>
             {% endif %}
           </div>
@@ -96,10 +97,6 @@
               {{ form.height|add_class:'form-control' }}
               <span class="input-group-text">{% trans "cm" %}</span>
             </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-            {{ form.height }}
           </div>
         </div>
 
@@ -133,9 +130,15 @@
             <label for="{{ form.current_status.id_for_label }}" class="form-label">{{ form.current_status.label }}</label>
             {{ form.current_status|add_class:'form-select'|attr:'required' }}
             <div class="invalid-feedback"></div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
           <div class="mb-3">
             <label for="{{ form.current_mood.id_for_label }}" class="form-label">{{ form.current_mood.label }}</label>
-            {{ form.current_mood }}
+            {{ form.current_mood|add_class:'form-control' }}
+            <div class="invalid-feedback"></div>
           </div>
         </div>
       </div>
@@ -227,9 +230,9 @@
     form.addEventListener('submit', function(event) {
         // Remove existing validation feedback
         form.querySelectorAll('.invalid-feedback').forEach(e => e.textContent = '');
-  
+
         let isValid = true;
-  
+
         // Required fields validation
         const requiredFields = form.querySelectorAll('[required]');
         requiredFields.forEach(field => {
@@ -266,13 +269,13 @@
         event.preventDefault();
         event.stopPropagation();
       }
-        
+
 
         form.querySelectorAll('input, select, textarea').forEach(field => {
             if(field.hasAttribute('required') || field.id === 'id_description'){
                 field.addEventListener('input', function() {
                     field.classList.remove('is-invalid');
-                    field.nextElementSibling.textContent = ''; 
+                    field.nextElementSibling.textContent = '';
                     if (field.id === 'id_name' && field.value.length > 50) {
                         field.classList.add('is-invalid');
                         field.nextElementSibling.textContent = 'This field must have 50 characters max.';
@@ -287,7 +290,7 @@
                             }
                         } else {
                             field.classList.remove('is-invalid');
-                            field.nextElementSibling.textContent = ''; 
+                            field.nextElementSibling.textContent = '';
                         }
                     } else if (field.hasAttribute('required') && field.value.trim() === '') {
                         field.classList.add('is-invalid');

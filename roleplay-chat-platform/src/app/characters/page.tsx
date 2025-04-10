@@ -1,176 +1,302 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Layout from "@/components/Layout";
 
-type Character = {
-  id: number;
-  name: string;
-  description: string;
+// Mocked character data since we don't have a real backend connection yet
+const mockCharacters = [
+  {
+    id: "1",
+    name: "Azura Nightshade",
+    species: "Elf",
+    gender: "Female",
+    status: "available",
+    created_at: "2023-04-15T14:00:00Z",
+    updated_at: "2024-03-01T09:30:00Z",
+    image: "https://ext.same-assets.com/2421641290/elf-character.jpg",
+  },
+  {
+    id: "2",
+    name: "Grimlock",
+    species: "Orc",
+    gender: "Male",
+    status: "away",
+    created_at: "2023-07-22T11:20:00Z",
+    updated_at: "2024-02-15T13:45:00Z",
+    image: null,
+  },
+  {
+    id: "3",
+    name: "Luna Moonshadow",
+    species: "Kitsune",
+    gender: "Female",
+    status: "looking",
+    created_at: "2024-01-10T16:30:00Z",
+    updated_at: "2024-04-01T10:15:00Z",
+    image: "https://ext.same-assets.com/2421641290/kitsune-character.jpg",
+  },
+];
+
+// Mock user for layout
+const mockUser = {
+  username: "player123",
 };
+
+interface Character {
+  id: string;
+  name: string;
+  species: string;
+  gender: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  image: string | null;
+}
 
 export default function CharactersPage() {
   const [characters, setCharacters] = useState<Character[]>([]);
-  const [name, setName] = useState("");
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [description, setDescription] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [filter, setFilter] = useState("");
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("access") : null;
-
+  // Mock loading effect
   useEffect(() => {
-    if (token) {
-      fetch("http://localhost:8000/api/characters/", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then(res => res.json())
-        .then(data => setCharacters(data))
-        .catch(err => console.error(err));
-    }
-  }, [token]);
+    // Simulate API fetch delay
+    const timer = setTimeout(() => {
+      setCharacters(mockCharacters);
+      setIsLoading(false);
+    }, 800);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+    return () => clearTimeout(timer);
+  }, []);
 
-    try {
-      const res = await fetch("http://localhost:8000/api/characters/create/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name, description }),
-      });
+  // Filter characters based on search term
+  const filteredCharacters = characters.filter((character) =>
+    character.name.toLowerCase().includes(filter.toLowerCase()) ||
+    character.species.toLowerCase().includes(filter.toLowerCase())
+  );
 
-      if (!res.ok) {
-        throw new Error("Failed to create character");
-      }
-
-      const newChar = await res.json();
-      setCharacters([...characters, newChar]);
-      setName("");
-      setDescription("");
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  const handleUpdate = async (id: number, newName: string, newDescription: string) => {
-    try {
-      const res = await fetch(`http://localhost:8000/api/characters/${id}/`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name: newName, description: newDescription }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to update character");
-      }
-
-      const updatedChar = await res.json();
-      setCharacters(
-        characters.map(char => (char.id === id ? updatedChar : char))
-      );
-      setEditingId(null);
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (confirm("Are you sure you want to delete this character?")) {
-      try {
-        const res = await fetch(`http://localhost:8000/api/characters/${id}/`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to delete character");
-        }
-
-        setCharacters(characters.filter(char => char.id !== id));
-      } catch (err: any) {
-        setError(err.message);
-      }
+  // Get status icon and color
+  const getStatusIndicator = (status: string) => {
+    switch (status) {
+      case "available":
+        return { icon: "🟢", color: "text-green-500" };
+      case "away":
+        return { icon: "🟠", color: "text-amber-500" };
+      case "busy":
+        return { icon: "🔴", color: "text-red-500" };
+      case "looking":
+        return { icon: "🔍", color: "text-blue-500" };
+      case "private":
+        return { icon: "🔒", color: "text-purple-500" };
+      default:
+        return { icon: "⚪", color: "text-gray-500" };
     }
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">Your Characters</h1>
+    <Layout user={mockUser}>
+      <div className="container mx-auto py-8 px-4">
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Your Characters</h1>
+            <p className="text-slate-400">
+              Manage your character profiles or create new ones
+            </p>
+          </div>
 
-      <ul className="mb-6 space-y-2">
-        {characters.map(char => (
-          <li key={char.id} className="border p-2 rounded flex items-center">
-            {editingId === char.id ? (
-              <div className="flex-1">
-                <input
-                  type="text"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  className="w-full p-1 border rounded mr-2"
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search characters..."
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 absolute left-3 top-2.5 text-slate-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
-                <textarea
-                  value={description}
-                  onChange={e => setDescription(e.target.value)}
-                  className="w-full p-1 border rounded mt-1"
-                />
-              </div>
-            ) : (
-              <div className="flex-1">
-                <strong>{char.name}</strong>: {char.description}
-              </div>
-            )}
+              </svg>
+            </div>
 
-            {editingId === char.id ? (
-              <div>
-                <button
-                  onClick={() => handleUpdate(char.id, name, description)}
-                  className="bg-blue-500 text-white p-1 rounded mr-1"
+            <Link
+              href="/characters/create"
+              className="bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Create Character
+            </Link>
+          </div>
+        </div>
+
+        {error && (
+          <div className="bg-red-500/20 border border-red-500 text-white p-4 rounded-md mb-6">
+            {error}
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="w-12 h-12 border-4 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
+            <p className="mt-4 text-slate-400">Loading your characters...</p>
+          </div>
+        ) : filteredCharacters.length === 0 ? (
+          filter ? (
+            <div className="bg-slate-800 rounded-lg p-8 text-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-16 w-16 mx-auto text-slate-600 mb-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <h2 className="text-xl font-semibold mb-2">No Characters Found</h2>
+              <p className="text-slate-400 mb-4">
+                We couldn't find any characters matching "{filter}"
+              </p>
+              <button
+                onClick={() => setFilter("")}
+                className="text-blue-400 hover:underline"
+              >
+                Clear filter
+              </button>
+            </div>
+          ) : (
+            <div className="bg-slate-800 rounded-lg p-8 text-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-16 w-16 mx-auto text-slate-600 mb-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              <h2 className="text-xl font-semibold mb-2">No Characters Yet</h2>
+              <p className="text-slate-400 mb-6">
+                You haven't created any characters yet. Create your first character to get started!
+              </p>
+              <Link
+                href="/characters/create"
+                className="bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white font-medium py-2 px-6 rounded-md inline-flex items-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  Save
-                </button>
-                <button onClick={() => setEditingId(null)} className="p-1 rounded">
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <div>
-                <button onClick={() => { setName(char.name); setDescription(char.description); setEditingId(char.id) }} className="bg-yellow-500 text-white p-1 rounded mr-1">Update</button>
-                <button onClick={() => handleDelete(char.id)} className="bg-red-500 text-white p-1 rounded">Delete</button>
-              </div>
-            )}
-          </li>
-        ))}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Create Your First Character
+              </Link>
+            </div>
+          )
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCharacters.map((character) => {
+              const statusInfo = getStatusIndicator(character.status);
+              return (
+                <div
+                  key={character.id}
+                  className="bg-slate-800 rounded-lg overflow-hidden hover:shadow-lg transition-shadow border border-slate-700 flex flex-col"
+                >
+                  <div className="h-48 bg-slate-700 relative">
+                    {character.image ? (
+                      <img
+                        src={character.image}
+                        alt={character.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-800">
+                        <div className="text-6xl opacity-60 font-light">
+                          {character.name.charAt(0)}
+                        </div>
+                      </div>
+                    )}
+                    <div className="absolute top-3 right-3 flex space-x-2">
+                      <span className={`text-sm px-2 py-1 rounded-md bg-slate-900/80 ${statusInfo.color}`}>
+                        {statusInfo.icon} {character.status}
+                      </span>
+                    </div>
+                  </div>
 
-      </ul>
+                  <div className="p-4 flex-grow">
+                    <h3 className="text-xl font-semibold mb-1 text-white">
+                      {character.name}
+                    </h3>
+                    <div className="text-sm text-slate-400 mb-2">
+                      {character.species} • {character.gender}
+                    </div>
+                    <div className="mt-3 text-xs text-slate-500">
+                      Last updated: {new Date(character.updated_at).toLocaleDateString()}
+                    </div>
+                  </div>
 
-      <h2 className="text-xl font-semibold mb-2">Create New Character</h2>
-      <form onSubmit={handleCreate} className="space-y-3">
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          className="w-full p-2 border rounded"
-          required
-        />
-        <textarea
-          placeholder="Description"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          className="w-full p-2 border rounded"
-          required
-        />
-        {error && <p className="text-red-500">{error}</p>}
-        <button type="submit" className="w-full p-2 bg-purple-600 text-white rounded">
-          Create Character
-        </button>
-      </form>
-    </div>
+                  <div className="border-t border-slate-700 p-3 bg-slate-800/50 flex justify-between">
+                    <Link
+                      href={`/characters/${character.id}`}
+                      className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                    >
+                      View Profile
+                    </Link>
+                    <Link
+                      href={`/characters/${character.id}/edit`}
+                      className="text-slate-400 hover:text-white text-sm font-medium"
+                    >
+                      Edit
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </Layout>
   );
 }
