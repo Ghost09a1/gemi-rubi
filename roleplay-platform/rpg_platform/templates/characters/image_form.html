@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Edit Image" %} - {{ character.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  @media (min-width: 768px) {
+    .form-content {
+      flex-direction: row;
+    }
+  }
+
+  .image-preview {
+    flex: 1;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .image-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+  }
+
+  .form-fields {
+    width: 100%;
+
+    @media (min-width: 768px) {
+      width: 400px;
+    }
+  }
+
+  .form-panel {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{% trans "Edit Image" %}</h1>
+    <div>
+      <a href="{% url 'characters:image_detail' character_pk=character.pk pk=object.pk %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> {% trans "Back to Image" %}
+      </a>
+    </div>
+  </div>
+
+  <div class="form-container">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="form-content">
+        <!-- Image preview -->
+        <div class="image-preview">
+          <img src="{{ object.image.url }}" alt="{{ object.title }}">
+        </div>
+
+        <!-- Form fields -->
+        <div class="form-fields">
+          <div class="form-panel">
+            <div class="mb-3">
+              <label for="{{ form.title.id_for_label }}" class="form-label">{% trans "Title" %}</label>
+              {{ form.title }}
+              {% if form.title.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.title.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <div class="form-text">{% trans "Optional title for this image" %}</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.description.id_for_label }}" class="form-label">{% trans "Description" %}</label>
+              {{ form.description }}
+              {% if form.description.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.description.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <div class="form-text">{% trans "Optional description or caption" %}</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.order.id_for_label }}" class="form-label">{% trans "Display Order" %}</label>
+              {{ form.order }}
+              {% if form.order.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.order.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <div class="form-text">{% trans "Lower numbers appear first (0 is highest priority)" %}</div>
+            </div>
+
+            <div class="mb-3 form-check">
+              {{ form.is_primary }}
+              <label class="form-check-label" for="{{ form.is_primary.id_for_label }}">
+                {% trans "Set as primary image" %}
+              </label>
+              {% if form.is_primary.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.is_primary.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <div class="form-text">{% trans "The primary image is shown on your character's profile and in listings" %}</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.image.id_for_label }}" class="form-label">{% trans "Replace image" %}</label>
+              {{ form.image }}
+              {% if form.image.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.image.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <div class="form-text">
+                {% trans "Upload a new image to replace the current one" %}<br>
+                {% trans "Allowed formats: JPG, PNG, GIF, WEBP (max 5MB)" %}
+              </div>
+            </div>
+
+            <div class="mt-4 d-flex justify-content-between">
+              <a href="{% url 'characters:image_detail' character_pk=character.pk pk=object.pk %}" class="btn btn-secondary">
+                {% trans "Cancel" %}
+              </a>
+              <button type="submit" class="btn btn-primary">
+                {% trans "Save Changes" %}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

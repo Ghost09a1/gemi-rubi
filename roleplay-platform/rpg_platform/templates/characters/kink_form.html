@@ -1,0 +1,476 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Manage Kinks" %} - {{ character.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .kinks-container {
+    margin-bottom: 2rem;
+  }
+
+  .kink-category {
+    margin-bottom: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    padding: 1rem;
+  }
+
+  .kink-category h3 {
+    margin-top: 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 1rem;
+  }
+
+  .kink-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    background-color: #fff;
+    transition: background-color 0.2s;
+  }
+
+  .kink-item:hover {
+    background-color: #f1f3f5;
+  }
+
+  .kink-name {
+    flex-grow: 1;
+  }
+
+  .kink-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .kink-rating-select {
+    width: 100px;
+  }
+
+  .kink-rating-fave {
+    color: #0c5460;
+    background-color: #d1ecf1;
+  }
+
+  .kink-rating-yes {
+    color: #155724;
+    background-color: #d4edda;
+  }
+
+  .kink-rating-maybe {
+    color: #856404;
+    background-color: #fff3cd;
+  }
+
+  .kink-rating-no {
+    color: #721c24;
+    background-color: #f8d7da;
+  }
+
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+  }
+
+  .filter-group {
+    flex-grow: 1;
+    min-width: 200px;
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+  }
+
+  .custom-kinks-section {
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+  }
+
+  .custom-kink-form {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    margin-top: 1rem;
+  }
+
+  .custom-kinks-list {
+    margin-top: 1.5rem;
+  }
+
+  .custom-kink-item {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    margin-bottom: 0.5rem;
+    position: relative;
+  }
+
+  .custom-kink-delete {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .kink-help-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+
+  .rating-info {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+  }
+
+  .rating-info-item {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .rating-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>{% trans "Manage Kinks" %} - {{ character.name }}</h1>
+
+  <div class="rating-info">
+    <h4>{% trans "Rating Guide" %}</h4>
+    <div class="rating-info-item">
+      <span class="rating-badge kink-rating-fave">{% trans "Favorite" %}</span>
+      <span>{% trans "Activities you particularly enjoy and actively seek out" %}</span>
+    </div>
+    <div class="rating-info-item">
+      <span class="rating-badge kink-rating-yes">{% trans "Yes" %}</span>
+      <span>{% trans "Activities you enjoy and are open to" %}</span>
+    </div>
+    <div class="rating-info-item">
+      <span class="rating-badge kink-rating-maybe">{% trans "Maybe" %}</span>
+      <span>{% trans "Activities you might do under the right circumstances" %}</span>
+    </div>
+    <div class="rating-info-item">
+      <span class="rating-badge kink-rating-no">{% trans "No" %}</span>
+      <span>{% trans "Activities you are not interested in or wish to avoid" %}</span>
+    </div>
+  </div>
+
+  <form method="post" id="kinks-form">
+    {% csrf_token %}
+
+    <!-- Filter and search bar -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label for="category-filter" class="form-label">{% trans "Category" %}</label>
+        <select id="category-filter" class="form-select">
+          <option value="all">{% trans "All Categories" %}</option>
+          {% for category in kink_categories %}
+            <option value="{{ category.name }}">{{ category.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="rating-filter" class="form-label">{% trans "Rating" %}</label>
+        <select id="rating-filter" class="form-select">
+          <option value="all">{% trans "All Ratings" %}</option>
+          <option value="fave">{% trans "Favorite" %}</option>
+          <option value="yes">{% trans "Yes" %}</option>
+          <option value="maybe">{% trans "Maybe" %}</option>
+          <option value="no">{% trans "No" %}</option>
+          <option value="unset">{% trans "Not Set" %}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="search-kinks" class="form-label">{% trans "Search" %}</label>
+        <input type="text" id="search-kinks" class="form-control" placeholder="{% trans 'Search kinks...' %}">
+      </div>
+
+      <div class="filter-actions">
+        <button type="button" id="clear-filters" class="btn btn-secondary">{% trans "Clear Filters" %}</button>
+      </div>
+    </div>
+
+    <!-- Kinks by category -->
+    <div class="kinks-container">
+      {% for category in kink_categories %}
+        <div class="kink-category" data-category="{{ category.name }}">
+          <h3>{{ category.name }}</h3>
+
+          {% for kink in category.kinks.all %}
+            <div class="kink-item" data-kink-id="{{ kink.id }}">
+              <div class="kink-name">
+                <div>{{ kink.name }}</div>
+                {% if kink.description %}
+                  <small class="text-muted">{{ kink.description }}</small>
+                {% endif %}
+              </div>
+              <div class="kink-info">
+                <select name="kink_{{ kink.id }}" class="form-select form-select-sm kink-rating-select" data-kink-id="{{ kink.id }}">
+                  <option value="">{% trans "Not Set" %}</option>
+                  <option value="fave" {% if kink.id in character_kinks and character_kinks.kink.id == kink.id and character_kinks.rating == 'fave' %}selected{% endif %}>{% trans "Favorite" %}</option>
+                  <option value="yes" {% if kink.id in character_kinks and character_kinks.kink.id == kink.id and character_kinks.rating == 'yes' %}selected{% endif %}>{% trans "Yes" %}</option>
+                  <option value="maybe" {% if kink.id in character_kinks and character_kinks.kink.id == kink.id and character_kinks.rating == 'maybe' %}selected{% endif %}>{% trans "Maybe" %}</option>
+                  <option value="no" {% if kink.id in character_kinks and character_kinks.kink.id == kink.id and character_kinks.rating == 'no' %}selected{% endif %}>{% trans "No" %}</option>
+                </select>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="d-flex justify-content-between">
+      <a href="{% url 'characters:character_detail' character.pk %}" class="btn btn-secondary">
+        {% trans "Cancel" %}
+      </a>
+      <button type="submit" class="btn btn-primary">
+        {% trans "Save Kink Preferences" %}
+      </button>
+    </div>
+  </form>
+
+  <!-- Custom Kinks Section -->
+  <div class="custom-kinks-section">
+    <h2>{% trans "Custom Kinks" %}</h2>
+    <p class="kink-help-text">
+      {% trans "Add your own custom kinks that aren't in the predefined list. You can add up to 500 custom kinks." %}
+    </p>
+
+    <form method="post" action="{% url 'characters:add_custom_kink' character.pk %}" class="custom-kink-form">
+      {% csrf_token %}
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="mb-3">
+            <label for="custom-kink-name" class="form-label">{% trans "Kink Name" %}*</label>
+            <input type="text" id="custom-kink-name" name="name" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="mb-3">
+            <label for="custom-kink-category" class="form-label">{% trans "Category" %}</label>
+            <input type="text" id="custom-kink-category" name="category" class="form-control" list="category-suggestions">
+            <datalist id="category-suggestions">
+              {% for category in kink_categories %}
+                <option value="{{ category.name }}">
+              {% endfor %}
+            </datalist>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="mb-3">
+            <label for="custom-kink-rating" class="form-label">{% trans "Rating" %}*</label>
+            <select id="custom-kink-rating" name="rating" class="form-select" required>
+              <option value="">{% trans "Select Rating" %}</option>
+              <option value="fave">{% trans "Favorite" %}</option>
+              <option value="yes">{% trans "Yes" %}</option>
+              <option value="maybe">{% trans "Maybe" %}</option>
+              <option value="no">{% trans "No" %}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="custom-kink-description" class="form-label">{% trans "Description" %}</label>
+        <textarea id="custom-kink-description" name="description" class="form-control" rows="3"></textarea>
+      </div>
+
+      <div class="text-end">
+        <button type="submit" class="btn btn-primary">{% trans "Add Custom Kink" %}</button>
+      </div>
+    </form>
+
+    <!-- List of existing custom kinks -->
+    <div class="custom-kinks-list">
+      <h4>{% trans "Your Custom Kinks" %}</h4>
+
+      {% if custom_kinks %}
+        {% regroup custom_kinks by category as categorized_kinks %}
+
+        {% for category in categorized_kinks %}
+          <div class="mb-4">
+            <h5>{{ category.grouper|default:"Uncategorized" }}</h5>
+
+            {% for kink in category.list %}
+              <div class="custom-kink-item">
+                <form method="post" action="{% url 'characters:delete_custom_kink' character.pk kink.pk %}" class="custom-kink-delete">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-danger">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </form>
+
+                <div class="d-flex align-items-center">
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center">
+                      <h6 class="mb-0">{{ kink.name }}</h6>
+                      <span class="ms-2 rating-badge kink-rating-{{ kink.rating }}">
+                        {% if kink.rating == 'fave' %}
+                          {% trans "Favorite" %}
+                        {% elif kink.rating == 'yes' %}
+                          {% trans "Yes" %}
+                        {% elif kink.rating == 'maybe' %}
+                          {% trans "Maybe" %}
+                        {% elif kink.rating == 'no' %}
+                          {% trans "No" %}
+                        {% endif %}
+                      </span>
+                    </div>
+                    {% if kink.description %}
+                      <div class="mt-1 small">{{ kink.description }}</div>
+                    {% endif %}
+                  </div>
+
+                  <div>
+                    <a href="{% url 'characters:edit_custom_kink' character.pk kink.pk %}" class="btn btn-sm btn-secondary">
+                      <i class="fas fa-edit"></i> {% trans "Edit" %}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>{% trans "You haven't added any custom kinks yet." %}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get filter elements
+    const categoryFilter = document.getElementById('category-filter');
+    const ratingFilter = document.getElementById('rating-filter');
+    const searchInput = document.getElementById('search-kinks');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+
+    // Get all kink categories and items
+    const kinkCategories = document.querySelectorAll('.kink-category');
+    const kinkItems = document.querySelectorAll('.kink-item');
+
+    // Function to apply filters
+    function applyFilters() {
+      const categoryValue = categoryFilter.value;
+      const ratingValue = ratingFilter.value;
+      const searchValue = searchInput.value.toLowerCase();
+
+      // Handle category filter
+      if (categoryValue !== 'all') {
+        kinkCategories.forEach(category => {
+          if (category.dataset.category === categoryValue) {
+            category.style.display = '';
+          } else {
+            category.style.display = 'none';
+          }
+        });
+      } else {
+        kinkCategories.forEach(category => {
+          category.style.display = '';
+        });
+      }
+
+      // Handle rating and search filters
+      kinkItems.forEach(item => {
+        // Get the select element for this kink
+        const selectElement = item.querySelector('.kink-rating-select');
+        const selectedValue = selectElement.value;
+
+        // Get kink name and description for search
+        const kinkName = item.querySelector('.kink-name').textContent.toLowerCase();
+
+        // Check if the item matches the rating filter
+        let matchesRating = ratingValue === 'all' ||
+                          (ratingValue === 'unset' && selectedValue === '') ||
+                          (selectedValue === ratingValue);
+
+        // Check if the item matches the search filter
+        let matchesSearch = searchValue === '' || kinkName.includes(searchValue);
+
+        // Show or hide the item based on both filters
+        if (matchesRating && matchesSearch) {
+          item.style.display = '';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      // Check if any items are visible in each category
+      kinkCategories.forEach(category => {
+        if (category.style.display !== 'none') {
+          const visibleItems = category.querySelectorAll('.kink-item[style="display: none;"]');
+          if (visibleItems.length === category.querySelectorAll('.kink-item').length) {
+            category.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    // Event listeners for filters
+    categoryFilter.addEventListener('change', applyFilters);
+    ratingFilter.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
+
+    // Clear filters button
+    clearFiltersBtn.addEventListener('click', function() {
+      categoryFilter.value = 'all';
+      ratingFilter.value = 'all';
+      searchInput.value = '';
+      applyFilters();
+    });
+
+    // Color the rating selects based on selected value
+    const ratingSelects = document.querySelectorAll('.kink-rating-select');
+
+    function updateRatingSelectColor(select) {
+      // Remove all existing classes
+      select.classList.remove('kink-rating-fave', 'kink-rating-yes', 'kink-rating-maybe', 'kink-rating-no');
+
+      // Add class based on selected value
+      if (select.value) {
+        select.classList.add(`kink-rating-${select.value}`);
+      }
+    }
+
+    ratingSelects.forEach(select => {
+      // Set initial color
+      updateRatingSelectColor(select);
+
+      // Update color on change
+      select.addEventListener('change', function() {
+        updateRatingSelectColor(this);
+      });
+    });
+  });
+</script>
+{% endblock %}

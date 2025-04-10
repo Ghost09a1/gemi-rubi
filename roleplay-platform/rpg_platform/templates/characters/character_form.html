@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}
+  {% if form.instance.pk %}
+    {% trans "Edit Character" %}: {{ form.instance.name }}
+  {% else %}
+    {% trans "Create New Character" %}
+  {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+  }
+
+  .form-section h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .preview-container {
+    padding: 1rem;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    min-height: 200px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>
+    {% if form.instance.pk %}
+      {% trans "Edit Character" %}: {{ form.instance.name }}
+    {% else %}
+      {% trans "Create New Character" %}
+    {% endif %}
+  </h1>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Basic Information Section -->
+    <div class="form-section">
+      <h3>{% trans "Basic Information" %}</h3>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.name.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="{{ form.gender.id_for_label }}" class="form-label">{{ form.gender.label }}</label>
+            {{ form.gender }}
+            {% if form.gender.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.gender.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="mb-3">
+            <label for="{{ form.species.id_for_label }}" class="form-label">{{ form.species.label }}</label>
+            {{ form.species }}
+            {% if form.species.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.species.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="mb-3">
+            <label for="{{ form.height.id_for_label }}" class="form-label">{{ form.height.label }}</label>
+            {{ form.height }}
+            {% if form.height.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.height.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="mb-3">
+            <label for="{{ form.body_type.id_for_label }}" class="form-label">{{ form.body_type.label }}</label>
+            {{ form.body_type }}
+            {% if form.body_type.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.body_type.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="mb-3">
+            <label for="{{ form.age.id_for_label }}" class="form-label">{{ form.age.label }}</label>
+            {{ form.age }}
+            {% if form.age.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.age.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="mb-3">
+            <label for="{{ form.current_status.id_for_label }}" class="form-label">{{ form.current_status.label }}</label>
+            {{ form.current_status }}
+            {% if form.current_status.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.current_status.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="mb-3">
+            <label for="{{ form.current_mood.id_for_label }}" class="form-label">{{ form.current_mood.label }}</label>
+            {{ form.current_mood }}
+            {% if form.current_mood.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.current_mood.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="{{ form.custom_status.id_for_label }}" class="form-label">{{ form.custom_status.label }}</label>
+        {{ form.custom_status }}
+        {% if form.custom_status.errors %}
+          <div class="invalid-feedback d-block">
+            {% for error in form.custom_status.errors %}
+              {{ error }}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="form-check mb-3">
+        {{ form.public }}
+        <label class="form-check-label" for="{{ form.public.id_for_label }}">
+          {{ form.public.label }}
+        </label>
+        {% if form.public.errors %}
+          <div class="invalid-feedback d-block">
+            {% for error in form.public.errors %}
+              {{ error }}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="form-check mb-3">
+        {{ form.allow_random_rp }}
+        <label class="form-check-label" for="{{ form.allow_random_rp.id_for_label }}">
+          {{ form.allow_random_rp.label }}
+        </label>
+        {% if form.allow_random_rp.errors %}
+          <div class="invalid-feedback d-block">
+            {% for error in form.allow_random_rp.errors %}
+              {{ error }}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Description Section -->
+    <div class="form-section">
+      <h3>{% trans "Character Description" %}</h3>
+
+      <div class="mb-3">
+        <label for="{{ form.appearance.id_for_label }}" class="form-label">{{ form.appearance.label }}</label>
+        {{ form.appearance }}
+        {% if form.appearance.errors %}
+          <div class="invalid-feedback d-block">
+            {% for error in form.appearance.errors %}
+              {{ error }}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label for="{{ form.personality.id_for_label }}" class="form-label">{{ form.personality.label }}</label>
+        {{ form.personality }}
+        {% if form.personality.errors %}
+          <div class="invalid-feedback d-block">
+            {% for error in form.personality.errors %}
+              {{ error }}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label for="{{ form.background.id_for_label }}" class="form-label">{{ form.background.label }}</label>
+        {{ form.background }}
+        {% if form.background.errors %}
+          <div class="invalid-feedback d-block">
+            {% for error in form.background.errors %}
+              {{ error }}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Private Details Section -->
+    <div class="form-section">
+      <h3>{% trans "Private Details" %}</h3>
+
+      <div class="mb-3">
+        <label for="{{ form.private_details.id_for_label }}" class="form-label">{{ form.private_details.label }}</label>
+        {{ form.private_details }}
+        {% if form.private_details.errors %}
+          <div class="invalid-feedback d-block">
+            {% for error in form.private_details.errors %}
+              {{ error }}
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="form-text">{{ form.private_details.help_text }}</div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+      <a href="{% url 'characters:character_list' %}" class="btn btn-secondary">
+        {% trans "Cancel" %}
+      </a>
+      <button type="submit" class="btn btn-primary">
+        {% if form.instance.pk %}
+          {% trans "Update Character" %}
+        {% else %}
+          {% trans "Create Character" %}
+        {% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

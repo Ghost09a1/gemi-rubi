@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+    {% if room %}
+        {% trans "Private Notes" %} - {{ room.name }} | {{ block.super }}
+    {% else %}
+        {% trans "Private Notes" %} | {{ block.super }}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col">
+            {% if room %}
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'messages:room_detail' room.pk %}">{{ room.name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{% trans "Private Notes" %}</li>
+                    </ol>
+                </nav>
+                <h1 class="h2">{% trans "Private Notes" %} - {{ room.name }}</h1>
+            {% else %}
+                <h1 class="h2">{% trans "Private Notes" %}</h1>
+            {% endif %}
+            <p class="text-muted">
+                {% trans "Your personal notes that only you can see." %}
+            </p>
+        </div>
+        <div class="col-auto align-self-center">
+            {% if room %}
+                <a href="{% url 'messages:private_note_create_room' room.pk %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i> {% trans "New Note" %}
+                </a>
+            {% else %}
+                <a href="{% url 'messages:private_note_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i> {% trans "New Note" %}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if private_notes %}
+        <div class="row">
+            {% for note in private_notes %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h3 class="h5 m-0 text-truncate" title="{{ note.title }}">{{ note.title }}</h3>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'messages:private_note_update' note.pk %}">
+                                            <i class="fas fa-edit me-2"></i> {% trans "Edit" %}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="{% url 'messages:private_note_delete' note.pk %}">
+                                            <i class="fas fa-trash me-2"></i> {% trans "Delete" %}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="note-content">{{ note.content|linebreaks }}</div>
+                        </div>
+                        <div class="card-footer text-muted d-flex justify-content-between">
+                            <small>{% trans "Updated" %}: {{ note.updated_at|date:"SHORT_DATETIME_FORMAT" }}</small>
+                            {% if note.chat_room and not room %}
+                                <a href="{% url 'messages:room_detail' note.chat_room.pk %}" class="badge bg-info text-decoration-none">
+                                    {{ note.chat_room.name }}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            {% if room %}
+                {% trans "You don't have any private notes for this chat room yet. Create one to keep track of important details only you can see." %}
+            {% else %}
+                {% trans "You don't have any private notes yet. Create one to keep track of important details only you can see." %}
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if not room and private_notes %}
+        <div class="alert alert-light border mt-4">
+            <i class="fas fa-lightbulb me-2 text-warning"></i>
+            {% trans "Tip: You can create chat room-specific notes by going to a chat room and clicking on 'Private Notes'." %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

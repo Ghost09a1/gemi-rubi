@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Account Settings" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .settings-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .settings-header {
+    margin-bottom: 2rem;
+  }
+
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .settings-card {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: transform 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .settings-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  .settings-card-header {
+    padding: 1rem;
+    background-color: #e9ecef;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .settings-card-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .settings-card-body {
+    padding: 1rem;
+  }
+
+  .settings-card-footer {
+    padding: 1rem;
+    border-top: 1px solid #dee2e6;
+    text-align: right;
+  }
+
+  .settings-icon {
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+    color: #6c757d;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="settings-container">
+    <div class="settings-header">
+      <h1>{% trans "Account Settings" %}</h1>
+      <p class="text-muted">{% trans "Manage your profile, preferences, and account security." %}</p>
+    </div>
+
+    <div class="settings-grid">
+      <!-- Profile Settings -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <h3>
+            <i class="fas fa-user-circle settings-icon"></i>
+            {% trans "Profile" %}
+          </h3>
+        </div>
+        <div class="settings-card-body">
+          <p>{% trans "Edit your personal information, bio, location, and profile picture." %}</p>
+        </div>
+        <div class="settings-card-footer">
+          <a href="{% url 'accounts:profile_update' %}" class="btn btn-primary">
+            {% trans "Edit Profile" %}
+          </a>
+        </div>
+      </div>
+
+      <!-- Preferences -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <h3>
+            <i class="fas fa-sliders-h settings-icon"></i>
+            {% trans "Preferences" %}
+          </h3>
+        </div>
+        <div class="settings-card-body">
+          <p>{% trans "Customize your interface settings including theme, language, and layout options." %}</p>
+        </div>
+        <div class="settings-card-footer">
+          <a href="{% url 'accounts:user_preferences' %}" class="btn btn-primary">
+            {% trans "Edit Preferences" %}
+          </a>
+        </div>
+      </div>
+
+      <!-- Privacy Settings -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <h3>
+            <i class="fas fa-shield-alt settings-icon"></i>
+            {% trans "Privacy" %}
+          </h3>
+        </div>
+        <div class="settings-card-body">
+          <p>{% trans "Control your profile visibility and who can see your activities and online status." %}</p>
+        </div>
+        <div class="settings-card-footer">
+          <a href="{% url 'accounts:privacy_settings' %}" class="btn btn-primary">
+            {% trans "Privacy Settings" %}
+          </a>
+        </div>
+      </div>
+
+      <!-- Communication Settings -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <h3>
+            <i class="fas fa-envelope settings-icon"></i>
+            {% trans "Communication" %}
+          </h3>
+        </div>
+        <div class="settings-card-body">
+          <p>{% trans "Manage your notification preferences, messaging options, and friend requests." %}</p>
+        </div>
+        <div class="settings-card-footer">
+          <a href="{% url 'accounts:communication_settings' %}" class="btn btn-primary">
+            {% trans "Communication Settings" %}
+          </a>
+        </div>
+      </div>
+
+      <!-- Social Links -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <h3>
+            <i class="fas fa-share-alt settings-icon"></i>
+            {% trans "Social Links" %}
+          </h3>
+        </div>
+        <div class="settings-card-body">
+          <p>{% trans "Connect your profile to your social media accounts and other platforms." %}</p>
+        </div>
+        <div class="settings-card-footer">
+          <a href="{% url 'accounts:profile_detail' username=user.username %}#social-links" class="btn btn-primary">
+            {% trans "Manage Links" %}
+          </a>
+        </div>
+      </div>
+
+      <!-- Blocked Users -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <h3>
+            <i class="fas fa-user-slash settings-icon"></i>
+            {% trans "Blocked Users" %}
+          </h3>
+        </div>
+        <div class="settings-card-body">
+          <p>{% trans "Manage your list of blocked users." %}</p>
+        </div>
+        <div class="settings-card-footer">
+          <a href="{% url 'accounts:blocked_users' %}" class="btn btn-primary">
+            {% trans "View Blocked Users" %}
+          </a>
+        </div>
+      </div>
+
+      <!-- Account Security -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <h3>
+            <i class="fas fa-lock settings-icon"></i>
+            {% trans "Security" %}
+          </h3>
+        </div>
+        <div class="settings-card-body">
+          <p>{% trans "Change your password and manage account security settings." %}</p>
+        </div>
+        <div class="settings-card-footer">
+          <a href="{% url 'accounts:password_change' %}" class="btn btn-primary">
+            {% trans "Change Password" %}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

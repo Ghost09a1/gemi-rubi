@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Review Boundaries" %} - {{ room.name|default:room.pk }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .boundary-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .boundary-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .boundary-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border-radius: 8px;
+  }
+
+  .allowed-section {
+    background-color: rgba(40, 167, 69, 0.1);
+    border: 1px solid rgba(40, 167, 69, 0.2);
+  }
+
+  .soft-section {
+    background-color: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.2);
+  }
+
+  .hard-section {
+    background-color: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+  }
+
+  .custom-section {
+    background-color: rgba(13, 110, 253, 0.1);
+    border: 1px solid rgba(13, 110, 253, 0.2);
+  }
+
+  .category-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+  }
+
+  .category-item {
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .agreement-checkbox {
+    padding: 1.5rem;
+    background-color: rgba(13, 110, 253, 0.05);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(13, 110, 253, 0.2);
+  }
+
+  .empty-list {
+    font-style: italic;
+    color: #6c757d;
+    padding: 0.5rem 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="mb-3">
+    <a href="{% url 'messages:room_detail' room.pk %}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-arrow-left"></i> {% trans "Back to Chat" %}
+    </a>
+  </div>
+
+  <div class="boundary-container">
+    <div class="boundary-header">
+      <h2>{% trans "Review Scene Boundaries" %}</h2>
+      <p class="text-muted">
+        {% trans "Please review these boundaries carefully before agreeing to participate in this roleplay." %}
+      </p>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.boundaries }}
+
+      <!-- Allowed Content -->
+      <div class="boundary-section allowed-section">
+        <h4><i class="fas fa-check-circle text-success"></i> {% trans "Allowed Content" %}</h4>
+        <p class="text-muted">{% trans "This content is allowed in this scene" %}</p>
+
+        <ul class="category-list">
+          {% if boundary.get_allowed_content %}
+            {% for allowed_value in boundary.get_allowed_content %}
+              <li class="category-item">
+                {% for value, label in form.allowed_content.field.choices %}
+                  {% if value == allowed_value %}
+                    {{ label }}
+                  {% endif %}
+                {% endfor %}
+              </li>
+            {% endfor %}
+          {% else %}
+            <p class="empty-list">{% trans "No specific allowed content categories set." %}</p>
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- Soft Limits -->
+      <div class="boundary-section soft-section">
+        <h4><i class="fas fa-exclamation-triangle text-warning"></i> {% trans "Soft Limits" %}</h4>
+        <p class="text-muted">{% trans "This content should be approached with caution and clear consent" %}</p>
+
+        <ul class="category-list">
+          {% if boundary.get_soft_limits %}
+            {% for soft_value in boundary.get_soft_limits %}
+              <li class="category-item">
+                {% for value, label in form.soft_limits.field.choices %}
+                  {% if value == soft_value %}
+                    {{ label }}
+                  {% endif %}
+                {% endfor %}
+              </li>
+            {% endfor %}
+          {% else %}
+            <p class="empty-list">{% trans "No specific soft limits set." %}</p>
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- Hard Limits -->
+      <div class="boundary-section hard-section">
+        <h4><i class="fas fa-ban text-danger"></i> {% trans "Hard Limits" %}</h4>
+        <p class="text-muted">{% trans "This content is absolutely not allowed in this scene" %}</p>
+
+        <ul class="category-list">
+          {% if boundary.get_hard_limits %}
+            {% for hard_value in boundary.get_hard_limits %}
+              <li class="category-item">
+                {% for value, label in form.hard_limits.field.choices %}
+                  {% if value == hard_value %}
+                    {{ label }}
+                  {% endif %}
+                {% endfor %}
+              </li>
+            {% endfor %}
+          {% else %}
+            <p class="empty-list">{% trans "No specific hard limits set." %}</p>
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- Custom Boundaries -->
+      {% if boundary.boundaries.custom %}
+        <div class="boundary-section custom-section">
+          <h4><i class="fas fa-pencil-alt text-primary"></i> {% trans "Custom Boundaries" %}</h4>
+          <p class="text-muted">{% trans "Additional notes and boundaries" %}</p>
+
+          <div class="p-3 bg-white rounded">
+            {{ boundary.boundaries.custom|linebreaks }}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Agreement Checkbox -->
+      <div class="agreement-checkbox">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="1" id="agreement-checkbox" required>
+          <label class="form-check-label" for="agreement-checkbox">
+            <strong>{% trans "I have read and agree to the boundaries set for this roleplay" %}</strong>
+          </label>
+        </div>
+        <div class="mt-2 text-muted small">
+          <p>{% trans "By agreeing, you are committing to respect these boundaries throughout the roleplay. You can revisit them at any time from the chat interface." %}</p>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <button type="submit" class="btn btn-primary" id="submit-button" disabled>
+          <i class="fas fa-handshake"></i> {% trans "I Agree to These Boundaries" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Enable submit button only when agreement is checked
+    const agreementCheckbox = document.getElementById('agreement-checkbox');
+    const submitButton = document.getElementById('submit-button');
+
+    agreementCheckbox.addEventListener('change', function() {
+      submitButton.disabled = !this.checked;
+    });
+  });
+</script>
+{% endblock %}

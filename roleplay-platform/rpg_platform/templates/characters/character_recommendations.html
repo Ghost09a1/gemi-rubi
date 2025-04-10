@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Character Recommendations" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .recommendations-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+
+  .recommendations-header {
+    margin-bottom: 2rem;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .tag {
+    display: inline-block;
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.2s;
+  }
+
+  .tag:hover {
+    background-color: #dee2e6;
+  }
+
+  .character-card {
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    height: 100%;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .character-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .character-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background-color: #e9ecef;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #6c757d;
+    font-size: 2rem;
+  }
+
+  .character-body {
+    padding: 1rem;
+  }
+
+  .character-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .character-creator {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .character-rating {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .rating-stars {
+    color: #ffc107;
+    margin-right: 0.5rem;
+  }
+
+  .rating-count {
+    color: #6c757d;
+    font-size: 0.85rem;
+  }
+
+  .character-description {
+    color: #495057;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .empty-recommendations {
+    text-align: center;
+    padding: 3rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+
+  .recommendation-section {
+    margin-bottom: 3rem;
+  }
+
+  .user-rating-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0,0,0,0.6);
+    color: #fff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .carousel-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .carousel-inner {
+    display: flex;
+    transition: transform 0.5s ease;
+  }
+
+  .carousel-item {
+    flex: 0 0 25%;
+    padding: 0 0.5rem;
+    box-sizing: border-box;
+    transition: transform 0.5s ease;
+  }
+
+  @media (max-width: 992px) {
+    .carousel-item {
+      flex: 0 0 33.33%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .carousel-item {
+      flex: 0 0 50%;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .carousel-item {
+      flex: 0 0 100%;
+    }
+  }
+
+  .carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255,255,255,0.8);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+
+  .carousel-control:hover {
+    opacity: 1;
+  }
+
+  .carousel-control.prev {
+    left: 10px;
+  }
+
+  .carousel-control.next {
+    right: 10px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="recommendations-container">
+  <div class="recommendations-header">
+    <h1>{% trans "Character Recommendations" %}</h1>
+    <p class="text-muted">{% trans "Discover characters based on your interactions and preferences" %}</p>
+  </div>
+
+  <!-- Personalized Recommendations -->
+  <div class="recommendation-section">
+    <div class="section-header">
+      <h2>{% trans "Recommended for You" %}</h2>
+      <a href="#" class="btn btn-sm btn-outline-primary">
+        <i class="fas fa-sync-alt"></i> {% trans "Refresh" %}
+      </a>
+    </div>
+
+    {% if personalized_recommendations %}
+      <div class="row">
+        {% for character in personalized_recommendations %}
+          <div class="col-md-3 col-sm-6 mb-4">
+            <a href="{% url 'characters:character_detail' character.pk %}" class="text-decoration-none">
+              <div class="character-card">
+                <div class="position-relative">
+                  {% if character.has_images %}
+                    <img src="{{ character.get_primary_image.image.url }}" alt="{{ character.name }}" class="character-image">
+                  {% else %}
+                    <div class="character-image">
+                      {{ character.name|slice:":1" }}
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="character-body">
+                  <div class="character-name">{{ character.name }}</div>
+                  <div class="character-creator">{% trans "by" %} {{ character.user.username }}</div>
+
+                  <div class="character-rating">
+                    <div class="rating-stars">
+                      {% if character.get_average_rating > 0 %}
+                        {% for i in "12345" %}
+                          {% if forloop.counter <= character.get_average_rating|floatformat:"0" %}
+                            <i class="fas fa-star"></i>
+                          {% elif forloop.counter <= character.get_average_rating|add:"0.5"|floatformat:"0" %}
+                            <i class="fas fa-star-half-alt"></i>
+                          {% else %}
+                            <i class="far fa-star"></i>
+                          {% endif %}
+                        {% endfor %}
+                      {% else %}
+                        <i class="far fa-star"></i>
+                        <i class="far fa-star"></i>
+                        <i class="far fa-star"></i>
+                        <i class="far fa-star"></i>
+                        <i class="far fa-star"></i>
+                      {% endif %}
+                    </div>
+                    <div class="rating-count">{{ character.get_rating_count }}</div>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-recommendations">
+        <h3>{% trans "No Personalized Recommendations Yet" %}</h3>
+        <p>{% trans "Rate more characters to get personalized recommendations" %}</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Popular Characters -->
+  <div class="recommendation-section">
+    <div class="section-header">
+      <h2>{% trans "Popular Characters" %}</h2>
+    </div>
+
+    {% if popular_characters %}
+      <div class="row">
+        {% for character in popular_characters %}
+          <div class="col-md-3 col-sm-6 mb-4">
+            <a href="{% url 'characters:character_detail' character.pk %}" class="text-decoration-none">
+              <div class="character-card">
+                <div class="position-relative">
+                  {% if character.has_images %}
+                    <img src="{{ character.get_primary_image.image.url }}" alt="{{ character.name }}" class="character-image">
+                  {% else %}
+                    <div class="character-image">
+                      {{ character.name|slice:":1" }}
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="character-body">
+                  <div class="character-name">{{ character.name }}</div>
+                  <div class="character-creator">{% trans "by" %} {{ character.user.username }}</div>
+
+                  <div class="character-rating">
+                    <div class="rating-stars">
+                      {% for i in "12345" %}
+                        {% if forloop.counter <= character.avg_rating|floatformat:"0" %}
+                          <i class="fas fa-star"></i>
+                        {% elif forloop.counter <= character.avg_rating|add:"0.5"|floatformat:"0" %}
+                          <i class="fas fa-star-half-alt"></i>
+                        {% else %}
+                          <i class="far fa-star"></i>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                    <div class="rating-count">{{ character.rating_count }}</div>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-recommendations">
+        <h3>{% trans "No Popular Characters Found" %}</h3>
+        <p>{% trans "Check back later for popular characters" %}</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Based on Favorite Kinks -->
+  {% if favorite_kinks %}
+    <div class="recommendation-section">
+      <div class="section-header">
+        <h2>{% trans "Based on Your Preferences" %}</h2>
+      </div>
+
+      <div class="mb-4">
+        <p>{% trans "Characters matching these preferences:" %}</p>
+        {% for kink in favorite_kinks %}
+          <span class="tag">{{ kink.name }}</span>
+        {% endfor %}
+      </div>
+
+      {% if kink_based_recommendations %}
+        <div class="row">
+          {% for character in kink_based_recommendations %}
+            <div class="col-md-3 col-sm-6 mb-4">
+              <a href="{% url 'characters:character_detail' character.pk %}" class="text-decoration-none">
+                <div class="character-card">
+                  <div class="position-relative">
+                    {% if character.has_images %}
+                      <img src="{{ character.get_primary_image.image.url }}" alt="{{ character.name }}" class="character-image">
+                    {% else %}
+                      <div class="character-image">
+                        {{ character.name|slice:":1" }}
+                      </div>
+                    {% endif %}
+
+                    <div class="badge bg-info position-absolute top-0 end-0 m-2">
+                      {{ character.matching_kink_count }} {% trans "matches" %}
+                    </div>
+                  </div>
+
+                  <div class="character-body">
+                    <div class="character-name">{{ character.name }}</div>
+                    <div class="character-creator">{% trans "by" %} {{ character.user.username }}</div>
+
+                    <div class="character-rating">
+                      <div class="rating-stars">
+                        {% for i in "12345" %}
+                          {% if forloop.counter <= character.avg_rating|floatformat:"0" %}
+                            <i class="fas fa-star"></i>
+                          {% elif forloop.counter <= character.avg_rating|add:"0.5"|floatformat:"0" %}
+                            <i class="fas fa-star-half-alt"></i>
+                          {% else %}
+                            <i class="far fa-star"></i>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                      <div class="rating-count">{{ character.rating_count }}</div>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-recommendations">
+          <h3>{% trans "No Matching Characters" %}</h3>
+          <p>{% trans "No characters matching your preferences were found" %}</p>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <!-- Recently Rated -->
+  {% if recent_rated_characters %}
+    <div class="recommendation-section">
+      <div class="section-header">
+        <h2>{% trans "Characters You Rated" %}</h2>
+      </div>
+
+      <div class="row">
+        {% for character in recent_rated_characters %}
+          <div class="col-md-3 col-sm-6 mb-4">
+            <a href="{% url 'characters:character_detail' character.pk %}" class="text-decoration-none">
+              <div class="character-card">
+                <div class="position-relative">
+                  {% if character.has_images %}
+                    <img src="{{ character.get_primary_image.image.url }}" alt="{{ character.name }}" class="character-image">
+                  {% else %}
+                    <div class="character-image">
+                      {{ character.name|slice:":1" }}
+                    </div>
+                  {% endif %}
+
+                  <div class="user-rating-badge">
+                    <i class="fas fa-star"></i> {{ character.user_rating }}
+                  </div>
+                </div>
+
+                <div class="character-body">
+                  <div class="character-name">{{ character.name }}</div>
+                  <div class="character-creator">{% trans "by" %} {{ character.user.username }}</div>
+
+                  <div class="character-rating">
+                    <div class="rating-stars">
+                      {% for i in "12345" %}
+                        {% if forloop.counter <= character.get_average_rating|floatformat:"0" %}
+                          <i class="fas fa-star"></i>
+                        {% elif forloop.counter <= character.get_average_rating|add:"0.5"|floatformat:"0" %}
+                          <i class="fas fa-star-half-alt"></i>
+                        {% else %}
+                          <i class="far fa-star"></i>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                    <div class="rating-count">{{ character.get_rating_count }}</div>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

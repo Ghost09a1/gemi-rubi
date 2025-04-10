@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Character Preferences" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .pref-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+
+  .pref-header {
+    margin-bottom: 2rem;
+  }
+
+  .pref-card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  .pref-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .pref-content {
+    padding: 1.25rem;
+  }
+
+  .pref-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pref-label {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .pref-detail {
+    color: #6c757d;
+    font-size: 0.95rem;
+  }
+
+  .pref-weight {
+    background-color: #f8f9fa;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    min-width: 70px;
+    text-align: center;
+  }
+
+  .pref-weight.high {
+    background-color: #d1e7dd;
+    color: #198754;
+  }
+
+  .pref-weight.medium {
+    background-color: #fff3cd;
+    color: #664d03;
+  }
+
+  .pref-weight.low {
+    background-color: #f8f9fa;
+    color: #6c757d;
+  }
+
+  .pref-actions {
+    padding: 0.75rem 1.25rem;
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .pref-empty {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    padding: 3rem;
+    text-align: center;
+    margin-top: 2rem;
+  }
+
+  .pref-empty-icon {
+    font-size: 3rem;
+    color: #dee2e6;
+    margin-bottom: 1rem;
+  }
+
+  .pref-type-filter {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pref-container">
+  <div class="pref-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1>{% trans "Character Preferences" %}</h1>
+      <a href="{% url 'recommendations:add_preference' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> {% trans "Add Preference" %}
+      </a>
+    </div>
+    <p class="text-muted">{% trans "Manage your character preferences to improve recommendations" %}</p>
+  </div>
+
+  <!-- Type filters -->
+  <div class="pref-type-filter">
+    <a href="?attr=all" class="btn {% if request.GET.attr == 'all' or not request.GET.attr %}btn-primary{% else %}btn-outline-primary{% endif %}">
+      {% trans "All" %}
+    </a>
+    <a href="?attr=species" class="btn {% if request.GET.attr == 'species' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+      {% trans "Species" %}
+    </a>
+    <a href="?attr=gender" class="btn {% if request.GET.attr == 'gender' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+      {% trans "Gender" %}
+    </a>
+    <a href="?attr=tag" class="btn {% if request.GET.attr == 'tag' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+      {% trans "Tags" %}
+    </a>
+    <a href="?attr=kink" class="btn {% if request.GET.attr == 'kink' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+      {% trans "Kinks" %}
+    </a>
+  </div>
+
+  {% if preferences %}
+    <div class="pref-list">
+      {% for preference in preferences %}
+        <div class="pref-card">
+          <div class="pref-content">
+            <div class="pref-row">
+              <div>
+                <div class="pref-label">
+                  {% if preference.attribute == 'species' %}
+                    <i class="fas fa-paw me-2 text-primary"></i>
+                  {% elif preference.attribute == 'gender' %}
+                    <i class="fas fa-venus-mars me-2 text-info"></i>
+                  {% elif preference.attribute == 'tag' %}
+                    <i class="fas fa-tag me-2 text-success"></i>
+                  {% elif preference.attribute == 'kink' %}
+                    <i class="fas fa-heart me-2 text-danger"></i>
+                  {% else %}
+                    <i class="fas fa-star me-2 text-warning"></i>
+                  {% endif %}
+                  {{ preference.value }}
+                </div>
+                <div class="pref-detail">
+                  {{ preference.get_attribute_display }}
+                </div>
+              </div>
+              <div class="pref-weight {% if preference.weight >= 3.5 %}high{% elif preference.weight >= 2 %}medium{% else %}low{% endif %}">
+                {{ preference.weight|floatformat:1 }}
+              </div>
+            </div>
+          </div>
+          <div class="pref-actions">
+            <a href="{% url 'recommendations:edit_preference' preference.id %}" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-edit"></i> {% trans "Edit" %}
+            </a>
+            <a href="{% url 'recommendations:delete_preference' preference.id %}" class="btn btn-sm btn-outline-danger">
+              <i class="fas fa-trash"></i> {% trans "Delete" %}
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="pref-empty">
+      <div class="pref-empty-icon">
+        <i class="fas fa-sliders-h"></i>
+      </div>
+      <h3>{% trans "No Preferences Yet" %}</h3>
+      <p>{% trans "You haven't set any character preferences yet. Add some to improve your recommendations." %}</p>
+      <a href="{% url 'recommendations:add_preference' %}" class="btn btn-primary mt-3">
+        <i class="fas fa-plus"></i> {% trans "Add Your First Preference" %}
+      </a>
+    </div>
+  {% endif %}
+
+  <!-- Link back to recommendations -->
+  <div class="text-center mt-4">
+    <a href="{% url 'recommendations:character_recommendations' %}" class="btn btn-outline-primary">
+      <i class="fas fa-arrow-left"></i> {% trans "Back to Recommendations" %}
+    </a>
+  </div>
+</div>
+{% endblock %}

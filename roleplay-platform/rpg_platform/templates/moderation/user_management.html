@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load moderation_tags %}
+
+{% block title %}{% trans "User Management" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .user-filters {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .user-card {
+    transition: transform 0.2s;
+    margin-bottom: 1rem;
+  }
+
+  .user-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+  }
+
+  .user-card .card-body {
+    padding: 1rem;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .user-card-header {
+    padding: 0.75rem 1rem;
+    background-color: rgba(0,0,0,0.03);
+  }
+
+  .user-tag {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 50rem;
+  }
+
+  .recently-active {
+    position: relative;
+  }
+
+  .recently-active::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background-color: #28a745;
+    border-radius: 50%;
+    top: 3px;
+    right: -8px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-0">{% trans "User Management" %}</h1>
+      <p class="text-muted">{% trans "View and manage platform users" %}</p>
+    </div>
+    <div>
+      <a href="{% url 'moderation:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> {% trans "Back to Dashboard" %}
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card bg-primary text-white mb-3">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-0">{% trans "Total Users" %}</h6>
+              <h3 class="mb-0">{{ total_users }}</h3>
+            </div>
+            <div>
+              <i class="fas fa-users fa-2x opacity-75"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card bg-info text-white mb-3">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-0">{% trans "Staff Members" %}</h6>
+              <h3 class="mb-0">{{ staff_users }}</h3>
+            </div>
+            <div>
+              <i class="fas fa-user-shield fa-2x opacity-75"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card bg-warning text-white mb-3">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-0">{% trans "Inactive Users" %}</h6>
+              <h3 class="mb-0">{{ inactive_users }}</h3>
+            </div>
+            <div>
+              <i class="fas fa-user-slash fa-2x opacity-75"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="user-filters">
+    <form method="get" class="row">
+      <div class="col-md-4 mb-3">
+        <label class="form-label">{% trans "Search Users" %}</label>
+        <div class="input-group">
+          <input type="text" name="search" class="form-control" placeholder="{% trans 'Username, email, or display name' %}" value="{{ search }}">
+          <button class="btn btn-primary" type="submit">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <label class="form-label">{% trans "Role" %}</label>
+        <select name="role" class="form-select" onchange="this.form.submit()">
+          <option value="" {% if not role %}selected{% endif %}>{% trans "All Roles" %}</option>
+          <option value="regular" {% if role == 'regular' %}selected{% endif %}>{% trans "Regular Users" %}</option>
+          <option value="staff" {% if role == 'staff' %}selected{% endif %}>{% trans "Staff Members" %}</option>
+          <option value="superuser" {% if role == 'superuser' %}selected{% endif %}>{% trans "Administrators" %}</option>
+        </select>
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <label class="form-label">{% trans "Status" %}</label>
+        <select name="status" class="form-select" onchange="this.form.submit()">
+          <option value="" {% if not status %}selected{% endif %}>{% trans "All Statuses" %}</option>
+          <option value="active" {% if status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
+          <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
+        </select>
+      </div>
+
+      <div class="col-md-2 mb-3">
+        <label class="form-label">{% trans "Sort By" %}</label>
+        <select name="sort" class="form-select" onchange="this.form.submit()">
+          <option value="-date_joined" {% if sort == '-date_joined' %}selected{% endif %}>{% trans "Newest" %}</option>
+          <option value="date_joined" {% if sort == 'date_joined' %}selected{% endif %}>{% trans "Oldest" %}</option>
+          <option value="-last_login" {% if sort == '-last_login' %}selected{% endif %}>{% trans "Recently Active" %}</option>
+          <option value="username" {% if sort == 'username' %}selected{% endif %}>{% trans "Username (A-Z)" %}</option>
+          <option value="-username" {% if sort == '-username' %}selected{% endif %}>{% trans "Username (Z-A)" %}</option>
+        </select>
+      </div>
+    </form>
+  </div>
+
+  <!-- User List -->
+  {% if users %}
+    <div class="row">
+      {% for user_item in users %}
+        <div class="col-md-4">
+          <div class="card user-card">
+            <div class="user-card-header d-flex justify-content-between align-items-center">
+              <div>
+                {% if user_item.id in recently_active %}
+                  <span class="recently-active">
+                    <i class="fas fa-circle text-success me-1"></i>
+                  </span>
+                {% endif %}
+                {% if user_item.is_superuser %}
+                  <span class="user-tag bg-danger text-white">{% trans "Admin" %}</span>
+                {% elif user_item.is_staff %}
+                  <span class="user-tag bg-info text-white">{% trans "Staff" %}</span>
+                {% endif %}
+                {% if not user_item.is_active %}
+                  <span class="user-tag bg-warning text-dark">{% trans "Inactive" %}</span>
+                {% endif %}
+              </div>
+              <small class="text-muted">
+                <i class="fas fa-calendar-alt me-1"></i>
+                {% if user_item.last_login %}
+                  {{ user_item.last_login|date:"M d, Y" }}
+                {% else %}
+                  {% trans "Never logged in" %}
+                {% endif %}
+              </small>
+            </div>
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-3">
+                <div class="me-3">
+                  {% if user_item.profile.avatar %}
+                    <img src="{{ user_item.profile.get_avatar_url }}" alt="{{ user_item.username }}" class="user-avatar">
+                  {% else %}
+                    <div class="user-avatar bg-light d-flex align-items-center justify-content-center">
+                      <i class="fas fa-user text-secondary"></i>
+                    </div>
+                  {% endif %}
+                </div>
+                <div>
+                  <h5 class="mb-0">
+                    <a href="{% url 'moderation:user_detail' user_item.username %}">
+                      {{ user_item.username }}
+                    </a>
+                  </h5>
+                  <small class="text-muted">
+                    {% if user_item.profile %}
+                      {{ user_item.profile.display_name|default:"" }}
+                    {% endif %}
+                  </small>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="small text-muted">
+                  <i class="fas fa-user-clock me-1"></i>
+                  {% trans "Joined" %} {{ user_item.date_joined|date:"M d, Y" }}
+                </div>
+                <div>
+                  <a href="{% url 'moderation:user_detail' user_item.username %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-eye me-1"></i> {% trans "View" %}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+      <nav aria-label="{% trans 'User navigation' %}" class="mt-4">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{% url_replace page=1 %}" aria-label="{% trans 'First' %}">
+                <i class="fas fa-angle-double-left"></i>
+              </a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?{% url_replace page=page_obj.previous_page_number %}" aria-label="{% trans 'Previous' %}">
+                <i class="fas fa-angle-left"></i>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+            </li>
+            <li class="page-item disabled">
+              <span class="page-link"><i class="fas fa-angle-left"></i></span>
+            </li>
+          {% endif %}
+
+          {% for i in paginator.page_range %}
+            {% if page_obj.number == i %}
+              <li class="page-item active">
+                <span class="page-link">{{ i }}</span>
+              </li>
+            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?{% url_replace page=i %}">{{ i }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{% url_replace page=page_obj.next_page_number %}" aria-label="{% trans 'Next' %}">
+                <i class="fas fa-angle-right"></i>
+              </a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?{% url_replace page=paginator.num_pages %}" aria-label="{% trans 'Last' %}">
+                <i class="fas fa-angle-double-right"></i>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link"><i class="fas fa-angle-right"></i></span>
+            </li>
+            <li class="page-item disabled">
+              <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+  {% else %}
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h4>{% trans "No Users Found" %}</h4>
+        <p class="text-muted">{% trans "No users match your search criteria." %}</p>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Blocked Users" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .blocked-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .blocked-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .blocked-card {
+    display: flex;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+    padding: 1rem;
+  }
+
+  .user-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    object-fit: cover;
+    background-color: #e9ecef;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    color: #6c757d;
+    flex-shrink: 0;
+  }
+
+  .blocked-info {
+    flex: 1;
+  }
+
+  .user-name {
+    font-weight: 500;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .user-meta {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .block-time {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .block-reason {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    border-left: 3px solid #dee2e6;
+    font-size: 0.9rem;
+    color: #495057;
+  }
+
+  .blocked-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+  }
+
+  .empty-blocked {
+    text-align: center;
+    padding: 3rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 2rem;
+  }
+
+  .empty-blocked-icon {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="blocked-container">
+    <div class="blocked-header">
+      <h1>{% trans "Blocked Users" %}</h1>
+      <div>
+        <a href="{% url 'accounts:privacy_settings' %}" class="btn btn-outline-primary">
+          <i class="fas fa-shield-alt"></i> {% trans "Privacy Settings" %}
+        </a>
+        <a href="{% url 'accounts:friend_list' %}" class="btn btn-outline-secondary ms-2">
+          <i class="fas fa-users"></i> {% trans "Friends" %}
+        </a>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">{% trans "Manage Blocked Users" %}</h5>
+      </div>
+      <div class="card-body">
+        <p>
+          {% trans "Blocked users cannot see your content, send you messages, or send you friend requests. Unblocking a user will allow them to interact with you again." %}
+        </p>
+      </div>
+    </div>
+
+    {% if blocked_users %}
+      {% for block in blocked_users %}
+        <div class="blocked-card">
+          <!-- User Avatar -->
+          {% if block.blocked_user.profile.avatar %}
+            <img src="{{ block.blocked_user.profile.get_avatar_url }}" alt="{{ block.blocked_user.username }}" class="user-avatar">
+          {% else %}
+            <div class="user-avatar">
+              {{ block.blocked_user.username|slice:":1" }}
+            </div>
+          {% endif %}
+
+          <!-- Block Info -->
+          <div class="blocked-info">
+            <div class="user-name">
+              {{ block.blocked_user.profile.get_display_name }}
+            </div>
+            <div class="user-meta">
+              @{{ block.blocked_user.username }}
+              {% if block.blocked_user.profile.location %}
+                • {{ block.blocked_user.profile.location }}
+              {% endif %}
+            </div>
+
+            <div class="block-time">
+              {% trans "Blocked" %} {{ block.created_at|timesince }} {% trans "ago" %}
+            </div>
+
+            {% if block.reason %}
+              <div class="block-reason">
+                <strong>{% trans "Reason:" %}</strong> {{ block.reason }}
+              </div>
+            {% endif %}
+
+            <div class="blocked-actions">
+              <form method="post" action="{% url 'accounts:unblock_user' block.pk %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{% trans "Are you sure you want to unblock this user?" %}')">
+                  <i class="fas fa-unlock"></i> {% trans "Unblock" %}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-blocked">
+        <div class="empty-blocked-icon">
+          <i class="fas fa-ban"></i>
+        </div>
+        <h3>{% trans "No Blocked Users" %}</h3>
+        <p>{% trans "You haven't blocked any users yet." %}</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{{ profile.get_display_name }} - {% trans "Profile" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .profile-header {
+      flex-direction: row;
+    }
+  }
+
+  .profile-avatar-container {
+    width: 200px;
+    height: 200px;
+    position: relative;
+  }
+
+  .profile-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+
+  .profile-info {
+    flex: 1;
+  }
+
+  .profile-name {
+    margin-bottom: 0.5rem;
+  }
+
+  .profile-details {
+    margin-bottom: 1rem;
+  }
+
+  .profile-detail {
+    display: flex;
+    margin-bottom: 0.5rem;
+    color: #6c757d;
+  }
+
+  .profile-detail i {
+    width: 20px;
+    margin-right: 0.5rem;
+  }
+
+  .profile-actions {
+    margin-top: 1rem;
+  }
+
+  .profile-bio {
+    margin-top: 1rem;
+    white-space: pre-line;
+  }
+
+  .profile-tabs {
+    margin-bottom: 1.5rem;
+  }
+
+  .tab-content {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 0.25rem 0.25rem;
+    padding: 1.5rem;
+  }
+
+  .social-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    background-color: #f8f9fa;
+    color: #495057;
+    text-decoration: none;
+    transition: background-color 0.2s;
+  }
+
+  .social-link:hover {
+    background-color: #e9ecef;
+    color: #212529;
+    text-decoration: none;
+  }
+
+  .social-link i {
+    font-size: 1.25rem;
+  }
+
+  .character-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .character-card {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: transform 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .character-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  .character-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+  }
+
+  .character-info {
+    padding: 1rem;
+  }
+
+  .character-name {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
+
+  .character-meta {
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+
+  .add-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <!-- Profile Avatar -->
+    <div class="profile-avatar-container">
+      <img src="{{ profile.get_avatar_url }}" alt="{{ profile.get_display_name }}" class="profile-avatar">
+    </div>
+
+    <!-- Profile Information -->
+    <div class="profile-info">
+      <h1 class="profile-name">
+        {{ profile.get_display_name }}
+        {% if profile.user.is_staff %}
+          <span class="badge bg-primary">{% trans "Staff" %}</span>
+        {% endif %}
+      </h1>
+
+      <div class="profile-details">
+        {% if profile.user.username != profile.display_name %}
+          <div class="profile-detail">
+            <i class="fas fa-user"></i>
+            <span>{{ profile.user.username }}</span>
+          </div>
+        {% endif %}
+
+        {% if profile.location %}
+          <div class="profile-detail">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>{{ profile.location }}</span>
+          </div>
+        {% endif %}
+
+        <div class="profile-detail">
+          <i class="fas fa-calendar-alt"></i>
+          <span>{% trans "Joined" %} {{ profile.created_at|date }}</span>
+        </div>
+
+        {% if profile.online_status and profile.last_active %}
+          <div class="profile-detail">
+            <i class="fas fa-clock"></i>
+            <span>{% trans "Last active" %} {{ profile.last_active|date:"SHORT_DATETIME_FORMAT" }}</span>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Profile Action Buttons -->
+      <div class="profile-actions">
+        {% if user.is_authenticated %}
+          {% if user == profile.user %}
+            <a href="{% url 'accounts:profile_update' %}" class="btn btn-primary">
+              <i class="fas fa-edit"></i> {% trans "Edit Profile" %}
+            </a>
+            <a href="{% url 'accounts:account_settings' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-cog"></i> {% trans "Settings" %}
+            </a>
+          {% else %}
+            {% if is_blocked %}
+              <a href="{% url 'accounts:unblock_user' pk=profile.user.pk %}" class="btn btn-outline-danger">
+                <i class="fas fa-user-check"></i> {% trans "Unblock User" %}
+              </a>
+            {% else %}
+              <a href="{% url 'accounts:block_user' %}?blocked_user={{ profile.user.pk }}" class="btn btn-outline-danger">
+                <i class="fas fa-user-slash"></i> {% trans "Block User" %}
+              </a>
+            {% endif %}
+
+            {% if profile.private_messages %}
+              <button class="btn btn-outline-primary">
+                <i class="fas fa-envelope"></i> {% trans "Send Message" %}
+              </button>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <!-- Profile Bio -->
+      {% if profile.bio %}
+        <div class="profile-bio">
+          {{ profile.bio|linebreaks }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Profile Tabs -->
+  <ul class="nav nav-tabs profile-tabs" id="profileTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="characters-tab" data-bs-toggle="tab" data-bs-target="#characters" type="button">
+        <i class="fas fa-users"></i> {% trans "Characters" %}
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="social-tab" data-bs-toggle="tab" data-bs-target="#social" type="button">
+        <i class="fas fa-share-alt"></i> {% trans "Social Links" %}
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="profileTabsContent">
+    <!-- Characters Tab -->
+    <div class="tab-pane fade show active" id="characters" role="tabpanel" aria-labelledby="characters-tab">
+      <h3>{% trans "Characters" %}</h3>
+
+      {% if characters %}
+        <div class="character-grid">
+          {% for character in characters %}
+            <div class="character-card">
+              {% if character.images.exists %}
+                {% with primary_image=character.images.first %}
+                  <img src="{{ primary_image.image.url }}" alt="{{ character.name }}" class="character-image">
+                {% endwith %}
+              {% else %}
+                <div class="character-image bg-secondary"></div>
+              {% endif %}
+
+              <div class="character-info">
+                <h5 class="character-name">{{ character.name }}</h5>
+                <div class="character-meta">
+                  {{ character.get_gender_display }} {{ character.species }}
+                </div>
+                <div class="mt-2">
+                  <a href="{% url 'characters:character_detail' character.pk %}" class="btn btn-sm btn-primary">
+                    {% trans "View" %}
+                  </a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <i class="fas fa-users"></i>
+          <h4>{% trans "No Characters" %}</h4>
+          <p>{% trans "This user has no public characters." %}</p>
+
+          {% if user == profile.user %}
+            <a href="{% url 'characters:character_create' %}" class="btn btn-primary">
+              <i class="fas fa-plus"></i> {% trans "Create Character" %}
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Social Links Tab -->
+    <div class="tab-pane fade" id="social" role="tabpanel" aria-labelledby="social-tab">
+      <div id="social-links">
+        <h3>{% trans "Social Links" %}</h3>
+
+        {% if user == profile.user %}
+          <div class="mb-3">
+            <a href="{% url 'accounts:social_link_add' %}" class="btn btn-primary add-link-btn">
+              <i class="fas fa-plus"></i> {% trans "Add Social Link" %}
+            </a>
+          </div>
+        {% endif %}
+
+        {% if social_links %}
+          <div class="social-links">
+            {% for link in social_links %}
+              <a href="{{ link.get_link }}" class="social-link" target="_blank">
+                {% if link.platform == 'website' %}
+                  <i class="fas fa-globe"></i>
+                {% elif link.platform == 'twitter' %}
+                  <i class="fab fa-twitter"></i>
+                {% elif link.platform == 'instagram' %}
+                  <i class="fab fa-instagram"></i>
+                {% elif link.platform == 'deviantart' %}
+                  <i class="fab fa-deviantart"></i>
+                {% elif link.platform == 'furaffinity' %}
+                  <i class="fas fa-paw"></i>
+                {% elif link.platform == 'discord' %}
+                  <i class="fab fa-discord"></i>
+                {% else %}
+                  <i class="fas fa-link"></i>
+                {% endif %}
+
+                <span>
+                  {% if link.display_name %}
+                    {{ link.display_name }}
+                  {% elif link.platform == 'website' %}
+                    {% trans "Website" %}
+                  {% else %}
+                    {{ link.username|default:link.get_platform_display }}
+                  {% endif %}
+                </span>
+              </a>
+
+              {% if user == profile.user %}
+                <div class="dropdown d-inline-block">
+                  <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a class="dropdown-item" href="{% url 'accounts:social_link_edit' link.pk %}">
+                        <i class="fas fa-edit"></i> {% trans "Edit" %}
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item text-danger" href="{% url 'accounts:social_link_delete' link.pk %}">
+                        <i class="fas fa-trash"></i> {% trans "Delete" %}
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <i class="fas fa-share-alt"></i>
+            <h4>{% trans "No Social Links" %}</h4>
+            <p>{% trans "No social links have been added." %}</p>
+
+            {% if user == profile.user %}
+              <a href="{% url 'accounts:social_link_add' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> {% trans "Add Social Link" %}
+              </a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

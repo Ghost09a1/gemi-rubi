@@ -1,0 +1,521 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load moderation_tags %}
+
+{% block title %}{% trans "User Activity Analytics" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .analytics-header {
+    margin-bottom: 2rem;
+  }
+
+  .chart-container {
+    position: relative;
+    margin-bottom: 2rem;
+    min-height: 300px;
+  }
+
+  .stat-card {
+    transition: transform 0.2s;
+    height: 100%;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .stat-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+  }
+
+  .user-activity-item {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .user-activity-item:last-child {
+    border-bottom: none;
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const primaryColor = 'rgba(13, 110, 253, 0.8)';
+    const secondaryColor = 'rgba(108, 117, 125, 0.8)';
+    const successColor = 'rgba(25, 135, 84, 0.8)';
+    const dangerColor = 'rgba(220, 53, 69, 0.8)';
+    const warningColor = 'rgba(255, 193, 7, 0.8)';
+    const infoColor = 'rgba(13, 202, 240, 0.8)';
+
+    // User Signups Chart
+    const signupCtx = document.getElementById('signupChart').getContext('2d');
+    const signupData = JSON.parse('{{ signup_data|safe }}');
+    new Chart(signupCtx, {
+      type: 'line',
+      data: {
+        labels: signupData.labels,
+        datasets: [{
+          label: '{% trans "New Users" %}',
+          data: signupData.data,
+          backgroundColor: primaryColor,
+          borderColor: primaryColor,
+          tension: 0.2,
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: '{% trans "New User Signups" %}',
+            font: {
+              size: 16
+            }
+          },
+          legend: {
+            position: 'bottom'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0
+            }
+          }
+        }
+      }
+    });
+
+    // User Activity Chart
+    const activityCtx = document.getElementById('activityChart').getContext('2d');
+    const activityData = JSON.parse('{{ activity_data|safe }}');
+    new Chart(activityCtx, {
+      type: 'line',
+      data: {
+        labels: activityData.labels,
+        datasets: [{
+          label: '{% trans "User Activities" %}',
+          data: activityData.data,
+          backgroundColor: successColor,
+          borderColor: successColor,
+          tension: 0.2,
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: '{% trans "User Activity Over Time" %}',
+            font: {
+              size: 16
+            }
+          },
+          legend: {
+            position: 'bottom'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0
+            }
+          }
+        }
+      }
+    });
+
+    // Character Creation Chart
+    const characterCtx = document.getElementById('characterChart').getContext('2d');
+    const characterData = JSON.parse('{{ character_data|safe }}');
+    new Chart(characterCtx, {
+      type: 'line',
+      data: {
+        labels: characterData.labels,
+        datasets: [{
+          label: '{% trans "New Characters" %}',
+          data: characterData.data,
+          backgroundColor: infoColor,
+          borderColor: infoColor,
+          tension: 0.2,
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: '{% trans "Character Creation Over Time" %}',
+            font: {
+              size: 16
+            }
+          },
+          legend: {
+            position: 'bottom'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0
+            }
+          }
+        }
+      }
+    });
+
+    // Activity Type Chart
+    const activityTypeCtx = document.getElementById('activityTypeChart').getContext('2d');
+    const activityTypeData = JSON.parse('{{ activity_by_type|safe }}');
+    new Chart(activityTypeCtx, {
+      type: 'pie',
+      data: {
+        labels: activityTypeData.labels,
+        datasets: [{
+          data: activityTypeData.data,
+          backgroundColor: [
+            primaryColor,
+            secondaryColor,
+            successColor,
+            dangerColor,
+            warningColor,
+            infoColor,
+            'rgba(111, 66, 193, 0.8)',
+            'rgba(252, 196, 25, 0.8)',
+            'rgba(32, 201, 151, 0.8)',
+            'rgba(253, 126, 20, 0.8)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: '{% trans "Activity by Type" %}',
+            font: {
+              size: 16
+            }
+          },
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+
+    // Character Visibility Chart
+    const visibilityCtx = document.getElementById('visibilityChart').getContext('2d');
+    const visibilityData = JSON.parse('{{ visibility_data|safe }}');
+    new Chart(visibilityCtx, {
+      type: 'doughnut',
+      data: {
+        labels: visibilityData.labels.map(label => label.charAt(0).toUpperCase() + label.slice(1)),
+        datasets: [{
+          data: visibilityData.data,
+          backgroundColor: [
+            primaryColor,
+            successColor,
+            warningColor
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: '{% trans "Character Visibility" %}',
+            font: {
+              size: 16
+            }
+          },
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header -->
+  <div class="analytics-header">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h1 class="h3 mb-0 text-gray-800">{% trans "User Activity Analytics" %}</h1>
+        <p class="text-muted">{% trans "Insights into user behavior and platform engagement" %}</p>
+      </div>
+      <div>
+        <a href="{% url 'moderation:dashboard' %}" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left me-1"></i> {% trans "Back to Dashboard" %}
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Time Range Filter -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="get" class="row align-items-center">
+        <div class="col-md-4">
+          <label class="form-label">{% trans "Time Range" %}</label>
+          <select name="time_range" class="form-select" onchange="this.form.submit()">
+            <option value="day" {% if time_range == 'day' %}selected{% endif %}>{% trans "Last 24 Hours" %}</option>
+            <option value="week" {% if time_range == 'week' %}selected{% endif %}>{% trans "Last 7 Days" %}</option>
+            <option value="month" {% if time_range == 'month' %}selected{% endif %}>{% trans "Last 30 Days" %}</option>
+            <option value="year" {% if time_range == 'year' %}selected{% endif %}>{% trans "Last Year" %}</option>
+          </select>
+        </div>
+        <div class="col-md-8 text-md-end mt-3 mt-md-0">
+          <span class="badge bg-info p-2">
+            <i class="fas fa-info-circle me-1"></i>
+            {% trans "Showing data from" %}
+            {% if time_range == 'day' %}
+              {% trans "the last 24 hours" %}
+            {% elif time_range == 'week' %}
+              {% trans "the last 7 days" %}
+            {% elif time_range == 'month' %}
+              {% trans "the last 30 days" %}
+            {% else %}
+              {% trans "the last year" %}
+            {% endif %}
+          </span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <!-- Total Users -->
+    <div class="col-md-3 mb-4">
+      <div class="card border-left-primary shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                {% trans "Total Users" %}
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_users }}</div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-users fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer bg-transparent border-0">
+          <span class="badge bg-success">+{{ new_users }}</span>
+          {% trans "new in period" %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Users -->
+    <div class="col-md-3 mb-4">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                {% trans "Active Users" %}
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_users }}</div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-user-clock fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer bg-transparent border-0">
+          <span class="badge bg-info">{{ active_users|default:0|divide:total_users|multiply:100|floatformat:1 }}%</span>
+          {% trans "of total users" %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Characters -->
+    <div class="col-md-3 mb-4">
+      <div class="card border-left-info shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                {% trans "Total Characters" %}
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_characters }}</div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-user-circle fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer bg-transparent border-0">
+          <span class="badge bg-success">+{{ new_characters }}</span>
+          {% trans "new in period" %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Engagement -->
+    <div class="col-md-3 mb-4">
+      <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                {% trans "Engagement" %}
+              </div>
+              <div class="row">
+                <div class="col-auto">
+                  <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ comments_count }}</div>
+                  <div class="text-xs text-gray-500">{% trans "Comments" %}</div>
+                </div>
+                <div class="col-auto">
+                  <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ ratings_count }}</div>
+                  <div class="text-xs text-gray-500">{% trans "Ratings" %}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-comments fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer bg-transparent border-0">
+          <span class="badge bg-warning">{{ avg_rating }}</span>
+          {% trans "avg rating" %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <div class="row mb-4">
+    <!-- User Signups Chart -->
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow">
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="signupChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Activity Chart -->
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow">
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="activityChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="row mb-4">
+    <!-- Character Creation Chart -->
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow">
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="characterChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Characters by Visibility -->
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow">
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="visibilityChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3 -->
+  <div class="row">
+    <!-- Activity by Type -->
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow">
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="activityTypeChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Most Active Users -->
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">{% trans "Most Active Users" %}</h6>
+        </div>
+        <div class="card-body">
+          {% if most_active_users %}
+            <div class="list-group list-group-flush">
+              {% for user in most_active_users %}
+                <div class="user-activity-item">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'accounts:profile_detail' user.user__username %}">
+                      <strong>{{ user.user__username }}</strong>
+                    </a>
+                    <div>
+                      <span class="badge bg-primary rounded-pill">{{ user.count }}</span>
+                      {% trans "activities" %}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-4">
+              <p class="text-muted mb-0">{% trans "No user activity in the selected period" %}</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

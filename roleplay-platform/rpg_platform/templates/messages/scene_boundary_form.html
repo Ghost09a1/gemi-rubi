@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Scene Boundaries" %} - {{ room.name|default:room.pk }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .boundary-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .boundary-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .boundary-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border-radius: 8px;
+  }
+
+  .allowed-section {
+    background-color: rgba(40, 167, 69, 0.1);
+    border: 1px solid rgba(40, 167, 69, 0.2);
+  }
+
+  .soft-section {
+    background-color: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.2);
+  }
+
+  .hard-section {
+    background-color: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+  }
+
+  .custom-section {
+    background-color: rgba(13, 110, 253, 0.1);
+    border: 1px solid rgba(13, 110, 253, 0.2);
+  }
+
+  .form-check-label {
+    cursor: pointer;
+    display: block;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+
+  .form-check-label:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .form-check-input {
+    margin-right: 0.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="mb-3">
+    <a href="{% url 'messages:room_detail' room.pk %}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-arrow-left"></i> {% trans "Back to Chat" %}
+    </a>
+  </div>
+
+  <div class="boundary-container">
+    <div class="boundary-header">
+      <h2>{% trans "Establish Scene Boundaries" %}</h2>
+      <p class="text-muted">
+        {% trans "Set clear boundaries for your roleplay to ensure everyone's comfort and consent." %}
+      </p>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="alert alert-danger">
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              <p>{{ error }}</p>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="boundary-section allowed-section">
+        <h4><i class="fas fa-check-circle text-success"></i> {% trans "Allowed Content" %}</h4>
+        <p class="text-muted">{% trans "Content that is allowed in this scene" %}</p>
+
+        <div class="row">
+          {% for value, label in form.allowed_content.field.choices %}
+            <div class="col-lg-6">
+              <div class="form-check">
+                <label class="form-check-label">
+                  <input type="checkbox" class="form-check-input" name="allowed_content" value="{{ value }}"
+                        {% if value in form.allowed_content.value %}checked{% endif %}>
+                  {{ label }}
+                </label>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="boundary-section soft-section">
+        <h4><i class="fas fa-exclamation-triangle text-warning"></i> {% trans "Soft Limits" %}</h4>
+        <p class="text-muted">{% trans "Content that should be approached with caution and clear consent" %}</p>
+
+        <div class="row">
+          {% for value, label in form.soft_limits.field.choices %}
+            <div class="col-lg-6">
+              <div class="form-check">
+                <label class="form-check-label">
+                  <input type="checkbox" class="form-check-input" name="soft_limits" value="{{ value }}"
+                        {% if value in form.soft_limits.value %}checked{% endif %}>
+                  {{ label }}
+                </label>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="boundary-section hard-section">
+        <h4><i class="fas fa-ban text-danger"></i> {% trans "Hard Limits" %}</h4>
+        <p class="text-muted">{% trans "Content that is absolutely not allowed in this scene" %}</p>
+
+        <div class="row">
+          {% for value, label in form.hard_limits.field.choices %}
+            <div class="col-lg-6">
+              <div class="form-check">
+                <label class="form-check-label">
+                  <input type="checkbox" class="form-check-input" name="hard_limits" value="{{ value }}"
+                        {% if value in form.hard_limits.value %}checked{% endif %}>
+                  {{ label }}
+                </label>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="boundary-section custom-section">
+        <h4><i class="fas fa-pencil-alt text-primary"></i> {% trans "Custom Boundaries" %}</h4>
+        <p class="text-muted">{% trans "Any other boundaries, preferences, or notes not covered above" %}</p>
+
+        <div class="form-group">
+          <textarea name="custom_boundaries" class="form-control" rows="5">{{ form.custom_boundaries.value|default:'' }}</textarea>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <p class="text-muted mb-4">
+          {% trans "After saving, all participants will need to review and agree to these boundaries before proceeding." %}
+        </p>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i> {% trans "Save Boundaries" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Make categories mutually exclusive between groups
+    const allowedChecks = document.querySelectorAll('input[name="allowed_content"]');
+    const softChecks = document.querySelectorAll('input[name="soft_limits"]');
+    const hardChecks = document.querySelectorAll('input[name="hard_limits"]');
+
+    allowedChecks.forEach(check => {
+      check.addEventListener('change', function() {
+        if (this.checked) {
+          // Uncheck corresponding soft and hard limits
+          const value = this.value;
+          softChecks.forEach(soft => {
+            if (soft.value === value) soft.checked = false;
+          });
+          hardChecks.forEach(hard => {
+            if (hard.value === value) hard.checked = false;
+          });
+        }
+      });
+    });
+
+    softChecks.forEach(check => {
+      check.addEventListener('change', function() {
+        if (this.checked) {
+          // Uncheck corresponding allowed and hard limits
+          const value = this.value;
+          allowedChecks.forEach(allowed => {
+            if (allowed.value === value) allowed.checked = false;
+          });
+          hardChecks.forEach(hard => {
+            if (hard.value === value) hard.checked = false;
+          });
+        }
+      });
+    });
+
+    hardChecks.forEach(check => {
+      check.addEventListener('change', function() {
+        if (this.checked) {
+          // Uncheck corresponding allowed and soft limits
+          const value = this.value;
+          allowedChecks.forEach(allowed => {
+            if (allowed.value === value) allowed.checked = false;
+          });
+          softChecks.forEach(soft => {
+            if (soft.value === value) soft.checked = false;
+          });
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

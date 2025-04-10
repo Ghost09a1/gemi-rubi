@@ -1,0 +1,7 @@
+{% load i18n %}
+
+<li class="nav-item">
+  <a class="nav-link {% if 'recommendations' in request.path %}active{% endif %}" href="{% url 'recommendations:character_recommendations' %}">
+    <i class="fas fa-magic me-1"></i> {% trans "Discover Characters" %}
+  </a>
+</li>

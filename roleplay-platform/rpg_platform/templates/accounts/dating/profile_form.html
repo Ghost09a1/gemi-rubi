@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}
+  {% if form.instance.pk %}
+    {% trans "Edit Dating Profile" %}
+  {% else %}
+    {% trans "Create Dating Profile" %}
+  {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+  .form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 2rem;
+  }
+
+  .form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .form-section {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title {
+    margin-bottom: 1.5rem;
+    color: #495057;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+  }
+
+  .section-title i {
+    margin-right: 0.5rem;
+  }
+
+  .select2-container--default .select2-selection--multiple {
+    border-color: #ced4da;
+    min-height: 38px;
+  }
+
+  .form-range-control {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .form-range-control label {
+    min-width: 120px;
+  }
+
+  .form-range-control input {
+    flex: 1;
+  }
+
+  .form-text-muted {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+  }
+
+  .privacy-options {
+    background-color: #e9f5ff;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+  <div class="mb-3">
+    <a href="{% url 'accounts:profile_detail' request.user.username %}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-arrow-left"></i> {% trans "Back to Profile" %}
+    </a>
+  </div>
+
+  <div class="form-container">
+    <div class="form-header">
+      <h1>
+        {% if form.instance.pk %}
+          {% trans "Edit Your Dating Profile" %}
+        {% else %}
+          {% trans "Create Your Dating Profile" %}
+        {% endif %}
+      </h1>
+      <p class="text-muted">
+        {% trans "Your dating profile helps you find compatible roleplay partners with similar interests." %}
+      </p>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="alert alert-danger">
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              <p>{{ field }}: {{ error }}</p>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Basic Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-user"></i> {% trans "Basic Information" %}
+        </h3>
+
+        <div class="form-group mb-3">
+          <label for="{{ form.headline.id_for_label }}" class="form-label">{{ form.headline.label }}</label>
+          {{ form.headline }}
+          {% if form.headline.help_text %}
+            <div class="form-text-muted">{{ form.headline.help_text }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="{{ form.summary.id_for_label }}" class="form-label">{{ form.summary.label }}</label>
+          {{ form.summary }}
+          {% if form.summary.help_text %}
+            <div class="form-text-muted">{{ form.summary.help_text }}</div>
+          {% endif %}
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="{{ form.birth_date.id_for_label }}" class="form-label">{{ form.birth_date.label }}</label>
+              {{ form.birth_date }}
+              {% if form.birth_date.help_text %}
+                <div class="form-text-muted">{{ form.birth_date.help_text }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="{{ form.gender_identity.id_for_label }}" class="form-label">{{ form.gender_identity.label }}</label>
+              {{ form.gender_identity }}
+              {% if form.gender_identity.help_text %}
+                <div class="form-text-muted">{{ form.gender_identity.help_text }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="{{ form.looking_for.id_for_label }}" class="form-label">{{ form.looking_for.label }}</label>
+          {{ form.looking_for }}
+          {% if form.looking_for.help_text %}
+            <div class="form-text-muted">{{ form.looking_for.help_text }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Roleplay Preferences Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-pen-fancy"></i> {% trans "Roleplay Preferences" %}
+        </h3>
+
+        <div class="form-group mb-3">
+          <label for="{{ form.roleplay_experience.id_for_label }}" class="form-label">{{ form.roleplay_experience.label }}</label>
+          {{ form.roleplay_experience }}
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="{{ form.writing_style.id_for_label }}" class="form-label">{{ form.writing_style.label }}</label>
+          {{ form.writing_style }}
+          {% if form.writing_style.help_text %}
+            <div class="form-text-muted">{{ form.writing_style.help_text }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="{{ form.post_frequency.id_for_label }}" class="form-label">{{ form.post_frequency.label }}</label>
+          {{ form.post_frequency }}
+          {% if form.post_frequency.help_text %}
+            <div class="form-text-muted">{{ form.post_frequency.help_text }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="{{ form.favorite_genres.id_for_label }}" class="form-label">{{ form.favorite_genres.label }}</label>
+          {{ form.favorite_genres }}
+          {% if form.favorite_genres.help_text %}
+            <div class="form-text-muted">{{ form.favorite_genres.help_text }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="{{ form.languages.id_for_label }}" class="form-label">{{ form.languages.label }}</label>
+          {{ form.languages }}
+          {% if form.languages.help_text %}
+            <div class="form-text-muted">{{ form.languages.help_text }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Matching Preferences Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-heart"></i> {% trans "Matching Preferences" %}
+        </h3>
+
+        <div class="form-group mb-4">
+          <label class="form-label">{% trans "Age Preference Range" %}</label>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-range-control">
+                <label for="{{ form.min_age_preference.id_for_label }}" class="form-label">{{ form.min_age_preference.label }}</label>
+                {{ form.min_age_preference }}
+              </div>
+              {% if form.min_age_preference.help_text %}
+                <div class="form-text-muted">{{ form.min_age_preference.help_text }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <div class="form-range-control">
+                <label for="{{ form.max_age_preference.id_for_label }}" class="form-label">{{ form.max_age_preference.label }}</label>
+                {{ form.max_age_preference }}
+              </div>
+              {% if form.max_age_preference.help_text %}
+                <div class="form-text-muted">{{ form.max_age_preference.help_text }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="{{ form.gender_preference.id_for_label }}" class="form-label">{{ form.gender_preference.label }}</label>
+          {{ form.gender_preference }}
+          {% if form.gender_preference.help_text %}
+            <div class="form-text-muted">{{ form.gender_preference.help_text }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Privacy Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-lock"></i> {% trans "Privacy Settings" %}
+        </h3>
+
+        <div class="privacy-options">
+          <div class="form-check mb-3">
+            {{ form.is_visible }}
+            <label class="form-check-label" for="{{ form.is_visible.id_for_label }}">
+              {{ form.is_visible.label }}
+            </label>
+            {% if form.is_visible.help_text %}
+              <div class="form-text-muted">{{ form.is_visible.help_text }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-check mb-3">
+            {{ form.show_online_status }}
+            <label class="form-check-label" for="{{ form.show_online_status.id_for_label }}">
+              {{ form.show_online_status.label }}
+            </label>
+            {% if form.show_online_status.help_text %}
+              <div class="form-text-muted">{{ form.show_online_status.help_text }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group mt-4 text-center">
+        <button type="submit" class="btn btn-primary btn-lg px-5">
+          {% if form.instance.pk %}
+            <i class="fas fa-save"></i> {% trans "Save Changes" %}
+          {% else %}
+            <i class="fas fa-plus-circle"></i> {% trans "Create Profile" %}
+          {% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+  $(document).ready(function() {
+    // Initialize Select2 for multi-select fields
+    $('.select2').select2({
+      theme: 'bootstrap4',
+      width: '100%'
+    });
+
+    // Handle age range validation
+    const minAgeInput = $('#{{ form.min_age_preference.id_for_label }}');
+    const maxAgeInput = $('#{{ form.max_age_preference.id_for_label }}');
+
+    function validateAgeRange() {
+      const minAge = parseInt(minAgeInput.val());
+      const maxAge = parseInt(maxAgeInput.val());
+
+      if (minAge > maxAge) {
+        maxAgeInput[0].setCustomValidity('{% trans "Maximum age must be greater than or equal to minimum age" %}');
+      } else {
+        maxAgeInput[0].setCustomValidity('');
+      }
+    }
+
+    minAgeInput.on('change', validateAgeRange);
+    maxAgeInput.on('change', validateAgeRange);
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Privacy Settings" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .privacy-form-container {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .form-section {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-section h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .privacy-item {
+    margin-bottom: 1.5rem;
+  }
+
+  .privacy-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .privacy-title {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
+
+  .privacy-description {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+  }
+
+  .privacy-levels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .privacy-level {
+    flex: 1 0 45%;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+  }
+
+  .privacy-level:hover {
+    background-color: #e9ecef;
+  }
+
+  .privacy-level.active {
+    border-color: #0d6efd;
+    background-color: #e7f1ff;
+  }
+
+  .privacy-level-title {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .privacy-level-icon {
+    color: #6c757d;
+  }
+
+  .privacy-level-description {
+    font-size: 0.875rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="privacy-form-container">
+    <h1>{% trans "Privacy Settings" %}</h1>
+    <p class="text-muted">{% trans "Control who can see your profile and activities" %}</p>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- Profile Privacy -->
+      <div class="form-section">
+        <h3>{% trans "Privacy Controls" %}</h3>
+
+        <!-- Profile Privacy Setting -->
+        <div class="privacy-item">
+          <div class="privacy-title">{% trans "Profile Privacy" %}</div>
+          <div class="privacy-description">{% trans "Control who can view your profile information" %}</div>
+
+          <div class="privacy-levels" id="profile-privacy-levels">
+            <div class="privacy-level" data-value="public">
+              <div class="privacy-level-title">
+                <i class="fas fa-globe privacy-level-icon"></i>
+                {% trans "Public" %}
+              </div>
+              <div class="privacy-level-description">
+                {% trans "Anyone can view your profile" %}
+              </div>
+            </div>
+
+            <div class="privacy-level" data-value="registered">
+              <div class="privacy-level-title">
+                <i class="fas fa-user-check privacy-level-icon"></i>
+                {% trans "Registered Users" %}
+              </div>
+              <div class="privacy-level-description">
+                {% trans "Only registered users can view your profile" %}
+              </div>
+            </div>
+
+            <div class="privacy-level" data-value="friends">
+              <div class="privacy-level-title">
+                <i class="fas fa-user-friends privacy-level-icon"></i>
+                {% trans "Friends Only" %}
+              </div>
+              <div class="privacy-level-description">
+                {% trans "Only friends can view your profile" %}
+              </div>
+            </div>
+
+            <div class="privacy-level" data-value="private">
+              <div class="privacy-level-title">
+                <i class="fas fa-lock privacy-level-icon"></i>
+                {% trans "Private" %}
+              </div>
+              <div class="privacy-level-description">
+                {% trans "Only you can view your profile" %}
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            {{ form.profile_privacy }}
+            {% if form.profile_privacy.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.profile_privacy.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Activity Privacy Setting -->
+        <div class="privacy-item">
+          <div class="privacy-title">{% trans "Activity Privacy" %}</div>
+          <div class="privacy-description">{% trans "Control who can see your online activities" %}</div>
+
+          <div class="privacy-levels" id="activity-privacy-levels">
+            <div class="privacy-level" data-value="public">
+              <div class="privacy-level-title">
+                <i class="fas fa-globe privacy-level-icon"></i>
+                {% trans "Public" %}
+              </div>
+              <div class="privacy-level-description">
+                {% trans "Anyone can see your activities" %}
+              </div>
+            </div>
+
+            <div class="privacy-level" data-value="registered">
+              <div class="privacy-level-title">
+                <i class="fas fa-user-check privacy-level-icon"></i>
+                {% trans "Registered Users" %}
+              </div>
+              <div class="privacy-level-description">
+                {% trans "Only registered users can see your activities" %}
+              </div>
+            </div>
+
+            <div class="privacy-level" data-value="friends">
+              <div class="privacy-level-title">
+                <i class="fas fa-user-friends privacy-level-icon"></i>
+                {% trans "Friends Only" %}
+              </div>
+              <div class="privacy-level-description">
+                {% trans "Only friends can see your activities" %}
+              </div>
+            </div>
+
+            <div class="privacy-level" data-value="private">
+              <div class="privacy-level-title">
+                <i class="fas fa-lock privacy-level-icon"></i>
+                {% trans "Private" %}
+              </div>
+              <div class="privacy-level-description">
+                {% trans "Only you can see your activities" %}
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            {{ form.activity_privacy }}
+            {% if form.activity_privacy.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.activity_privacy.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Online Status Setting -->
+        <div class="privacy-item">
+          <div class="form-check">
+            {{ form.online_status }}
+            <label class="form-check-label" for="{{ form.online_status.id_for_label }}">
+              <div class="privacy-title">{% trans "Show Online Status" %}</div>
+              <div class="privacy-description">
+                {% trans "Allow others to see when you're online and your last active time" %}
+              </div>
+            </label>
+            {% if form.online_status.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.online_status.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <a href="{% url 'accounts:account_settings' %}" class="btn btn-secondary">
+          {% trans "Back to Settings" %}
+        </a>
+        <button type="submit" class="btn btn-primary">
+          {% trans "Save Privacy Settings" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle profile privacy levels
+    setupPrivacyLevels('profile_privacy', 'profile-privacy-levels');
+
+    // Handle activity privacy levels
+    setupPrivacyLevels('activity_privacy', 'activity-privacy-levels');
+
+    function setupPrivacyLevels(fieldName, containerId) {
+      const select = document.getElementById('id_' + fieldName);
+      const container = document.getElementById(containerId);
+
+      if (!select || !container) return;
+
+      const levels = container.querySelectorAll('.privacy-level');
+
+      // Set initial state
+      updateActiveLevels(select, levels);
+
+      // Update active level when select changes
+      select.addEventListener('change', function() {
+        updateActiveLevels(select, levels);
+      });
+
+      // Handle click on level options
+      levels.forEach(level => {
+        level.addEventListener('click', function() {
+          select.value = this.dataset.value;
+          updateActiveLevels(select, levels);
+        });
+      });
+    }
+
+    function updateActiveLevels(select, levels) {
+      const currentValue = select.value;
+
+      // Remove active class from all levels
+      levels.forEach(level => {
+        level.classList.remove('active');
+      });
+
+      // Add active class to selected level
+      levels.forEach(level => {
+        if (level.dataset.value === currentValue) {
+          level.classList.add('active');
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

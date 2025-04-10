@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        {% trans "Edit Quick Response" %} | {{ block.super }}
+    {% else %}
+        {% trans "New Quick Response" %} | {{ block.super }}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col">
+            {% if form.instance.pk %}
+                <h1 class="h2">{% trans "Edit Quick Response" %}</h1>
+            {% else %}
+                <h1 class="h2">{% trans "New Quick Response" %}</h1>
+                <p class="text-muted">
+                    {% trans "Create a quick response to use during your roleplays." %}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    {{ form.name.label_tag }}
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.name.errors }}
+                        </div>
+                    {% endif %}
+                    {% if form.name.help_text %}
+                        <small class="form-text text-muted">{{ form.name.help_text }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.response_type.label_tag }}
+                    {{ form.response_type }}
+                    {% if form.response_type.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.response_type.errors }}
+                        </div>
+                    {% endif %}
+                    {% if form.response_type.help_text %}
+                        <small class="form-text text-muted">{{ form.response_type.help_text }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.character.label_tag }}
+                    {{ form.character }}
+                    {% if form.character.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.character.errors }}
+                        </div>
+                    {% endif %}
+                    {% if form.character.help_text %}
+                        <small class="form-text text-muted">{{ form.character.help_text }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.content.label_tag }}
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.content.errors }}
+                        </div>
+                    {% endif %}
+                    {% if form.content.help_text %}
+                        <small class="form-text text-muted">{{ form.content.help_text }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="buttons mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        {% if form.instance.pk %}
+                            {% trans "Update Quick Response" %}
+                        {% else %}
+                            {% trans "Create Quick Response" %}
+                        {% endif %}
+                    </button>
+                    <a href="{% url 'messages:quick_response_list' %}" class="btn btn-outline-secondary">
+                        {% trans "Cancel" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,469 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load moderation_tags %}
+
+{% block title %}{% trans "Report" %} #{{ report.id }} - {% trans "Moderation" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .report-header {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .report-content {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+
+  .report-info {
+    padding: 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .report-description {
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+  }
+
+  .reported-content {
+    padding: 1.5rem;
+    border-top: 1px solid #dee2e6;
+  }
+
+  .action-panel {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .status-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+  }
+
+  .action-history {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+
+  .action-item {
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .action-item:last-child {
+    border-bottom: none;
+  }
+
+  .action-meta {
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Back Button -->
+  <div class="mb-4">
+    <a href="{% url 'moderation:report_list' %}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-2"></i> {% trans "Back to Reports" %}
+    </a>
+  </div>
+
+  <!-- Report Header -->
+  <div class="report-header">
+    <div class="d-flex align-items-center">
+      <!-- Status Icon -->
+      <div class="status-icon bg-{{ report.status|yesno:'success,danger,warning,secondary' }}">
+        {% if report.status == 'resolved' %}
+          <i class="fas fa-check fa-lg text-white"></i>
+        {% elif report.status == 'investigating' %}
+          <i class="fas fa-search fa-lg text-white"></i>
+        {% elif report.status == 'rejected' %}
+          <i class="fas fa-times fa-lg text-white"></i>
+        {% else %}
+          <i class="fas fa-exclamation fa-lg text-white"></i>
+        {% endif %}
+      </div>
+
+      <!-- Report Title and Status -->
+      <div>
+        <h1 class="h3 mb-1">{% trans "Report" %} #{{ report.id }}: {{ report.get_report_type_display }}</h1>
+        <div>
+          {{ report.status|status_badge }}
+          <span class="text-muted ms-2">{{ report.created_at|date:"F j, Y" }} at {{ report.created_at|time:"H:i" }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Report Content -->
+    <div class="col-lg-8">
+      <!-- Report Details -->
+      <div class="report-content">
+        <div class="report-info">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <h5>{% trans "Reporter Information" %}</h5>
+              <div>
+                <strong>{% trans "Username" %}:</strong>
+                <a href="{% url 'accounts:profile_detail' report.reporter.username %}">
+                  {{ report.reporter.username }}
+                </a>
+              </div>
+              {% if report.reporter.profile %}
+                <div>
+                  <strong>{% trans "Display Name" %}:</strong> {{ report.reporter.profile.display_name }}
+                </div>
+                <div>
+                  <strong>{% trans "Member Since" %}:</strong> {{ report.reporter.date_joined|date:"M Y" }}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <h5>{% trans "Report Details" %}</h5>
+              <div>
+                <strong>{% trans "Type" %}:</strong> {{ report.get_report_type_display }}
+              </div>
+              <div>
+                <strong>{% trans "Status" %}:</strong> {{ report.get_status_display }}
+              </div>
+              {% if report.assigned_to %}
+                <div>
+                  <strong>{% trans "Assigned To" %}:</strong> {{ report.assigned_to.username }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="report-description">
+          <h5>{% trans "Description" %}</h5>
+          <p>{{ report.description }}</p>
+        </div>
+
+        <div class="reported-content">
+          <h5>{% trans "Reported Content" %}</h5>
+
+          <div class="mt-3">
+            <strong>{% trans "Content Type" %}:</strong>
+            {{ report.content_type.name|title }}
+          </div>
+
+          <div class="mt-2">
+            {% if report.content_type.model == 'character' %}
+              <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0">{% trans "Character" %}: {{ report.content_object.name }}</h6>
+                  <a href="{% url 'characters:detail' report.object_id %}" class="btn btn-sm btn-outline-primary" target="_blank">
+                    <i class="fas fa-external-link-alt me-1"></i> {% trans "View Character" %}
+                  </a>
+                </div>
+                <div class="card-body">
+                  <div><strong>{% trans "Owner" %}:</strong> {{ report.content_object.user.username }}</div>
+                  <div><strong>{% trans "Visibility" %}:</strong> {{ report.content_object.get_visibility_display }}</div>
+                  <div class="mt-2">
+                    {{ report.content_object.description|truncatewords:50 }}
+                  </div>
+                </div>
+              </div>
+            {% elif report.content_type.model == 'charactercomment' %}
+              <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0">{% trans "Comment on" %} {{ report.content_object.character.name }}</h6>
+                  <a href="{% url 'characters:detail' report.content_object.character.id %}#comment-{{ report.object_id }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                    <i class="fas fa-external-link-alt me-1"></i> {% trans "View Comment" %}
+                  </a>
+                </div>
+                <div class="card-body">
+                  <div><strong>{% trans "Commenter" %}:</strong> {{ report.content_object.user.username }}</div>
+                  <div><strong>{% trans "Posted" %}:</strong> {{ report.content_object.created_at|date }}</div>
+                  <div class="mt-2">
+                    {{ report.content_object.content }}
+                  </div>
+                </div>
+              </div>
+            {% elif report.content_type.model == 'profile' %}
+              <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0">{% trans "User Profile" %}: {{ report.content_object.user.username }}</h6>
+                  <a href="{% url 'accounts:profile_detail' report.content_object.user.username %}" class="btn btn-sm btn-outline-primary" target="_blank">
+                    <i class="fas fa-external-link-alt me-1"></i> {% trans "View Profile" %}
+                  </a>
+                </div>
+                <div class="card-body">
+                  <div><strong>{% trans "Display Name" %}:</strong> {{ report.content_object.display_name }}</div>
+                  <div><strong>{% trans "Member Since" %}:</strong> {{ report.content_object.user.date_joined|date }}</div>
+                  <div class="mt-2">
+                    {{ report.content_object.bio|truncatewords:50 }}
+                  </div>
+                </div>
+              </div>
+            {% elif report.content_type.model == 'chatmessage' %}
+              <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0">{% trans "Chat Message" %}</h6>
+                  <a href="{% url 'messages:chatroom' report.content_object.chatroom.id %}" class="btn btn-sm btn-outline-primary" target="_blank">
+                    <i class="fas fa-external-link-alt me-1"></i> {% trans "View Chat" %}
+                  </a>
+                </div>
+                <div class="card-body">
+                  <div><strong>{% trans "Sender" %}:</strong> {{ report.content_object.user.username }}</div>
+                  <div><strong>{% trans "Sent At" %}:</strong> {{ report.content_object.created_at|date }}</div>
+                  <div class="mt-2">
+                    {{ report.content_object.content }}
+                  </div>
+                </div>
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                {% trans "Content type" %}: {{ report.content_type.model }} (ID: {{ report.object_id }})
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Action History -->
+      {% if report_actions %}
+        <div class="action-history">
+          <div class="p-3 bg-light">
+            <h5 class="mb-0">{% trans "Action History" %}</h5>
+          </div>
+
+          {% for action in report_actions %}
+            <div class="action-item">
+              <div class="d-flex">
+                <div class="me-3">
+                  <span class="badge bg-{{ action.action_type|yesno:'warning,danger,info,secondary' }} p-2">
+                    {% if action.action_type == 'warn' %}
+                      <i class="fas fa-exclamation-triangle"></i>
+                    {% elif action.action_type == 'suspend' %}
+                      <i class="fas fa-user-clock"></i>
+                    {% elif action.action_type == 'ban' %}
+                      <i class="fas fa-user-slash"></i>
+                    {% elif action.action_type == 'delete' %}
+                      <i class="fas fa-trash-alt"></i>
+                    {% else %}
+                      <i class="fas fa-cog"></i>
+                    {% endif %}
+                  </span>
+                </div>
+                <div class="flex-grow-1">
+                  <div>
+                    <strong>{% trans "Action" %}:</strong> {{ action.get_action_type_display }}
+                    {% if action.user %}
+                      {% trans "on" %} <a href="{% url 'accounts:profile_detail' action.user.username %}">{{ action.user.username }}</a>
+                    {% endif %}
+                  </div>
+                  <div class="action-meta">
+                    {% trans "By" %} {{ action.moderator.username }} • {{ action.created_at|date:"M j, Y" }} at {{ action.created_at|time:"H:i" }}
+                  </div>
+                  <div class="mt-2">
+                    {{ action.reason }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Action Panel -->
+    <div class="col-lg-4">
+      <!-- Update Report Status -->
+      <div class="action-panel">
+        <h5>{% trans "Update Report Status" %}</h5>
+        <form method="post" action="{% url 'moderation:report_update' report.id %}">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label">{% trans "Status" %}</label>
+            <select name="status" class="form-select">
+              <option value="pending" {% if report.status == 'pending' %}selected{% endif %}>{% trans "Pending Review" %}</option>
+              <option value="investigating" {% if report.status == 'investigating' %}selected{% endif %}>{% trans "Under Investigation" %}</option>
+              <option value="resolved" {% if report.status == 'resolved' %}selected{% endif %}>{% trans "Resolved" %}</option>
+              <option value="rejected" {% if report.status == 'rejected' %}selected{% endif %}>{% trans "Rejected" %}</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">{% trans "Assign To" %}</label>
+            <select name="assigned_to" class="form-select">
+              <option value="">{% trans "Unassigned" %}</option>
+              {% for moderator in moderators %}
+                <option value="{{ moderator.id }}" {% if report.assigned_to == moderator %}selected{% endif %}>
+                  {{ moderator.username }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">{% trans "Resolution Note" %}</label>
+            <textarea name="resolution_note" class="form-control" rows="3">{{ report.resolution_note }}</textarea>
+            <div class="form-text">{% trans "Provide details about how this report was resolved." %}</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i> {% trans "Update Report" %}
+          </button>
+        </form>
+      </div>
+
+      <!-- Moderation Actions -->
+      <div class="action-panel">
+        <h5>{% trans "Take Action" %}</h5>
+        <p class="text-muted">{% trans "Choose an action to take on the user or content" %}</p>
+
+        <div class="list-group mb-3">
+          {% if report.content_type.model == 'character' or report.content_type.model == 'charactercomment' %}
+            <a href="{% url 'moderation:create_action' report.content_object.user.username %}?report={{ report.id }}" class="list-group-item list-group-item-action">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">{% trans "Warn User" %}</h6>
+                <small><i class="fas fa-exclamation-triangle text-warning"></i></small>
+              </div>
+              <p class="mb-1 small">{% trans "Send a warning to the user about this content" %}</p>
+            </a>
+
+            <a href="{% url 'moderation:create_action' report.content_object.user.username %}?action=suspend&report={{ report.id }}" class="list-group-item list-group-item-action">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">{% trans "Suspend User" %}</h6>
+                <small><i class="fas fa-user-clock text-danger"></i></small>
+              </div>
+              <p class="mb-1 small">{% trans "Temporarily suspend the user's account" %}</p>
+            </a>
+          {% elif report.content_type.model == 'profile' %}
+            <a href="{% url 'moderation:create_action' report.content_object.user.username %}?report={{ report.id }}" class="list-group-item list-group-item-action">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">{% trans "Warn User" %}</h6>
+                <small><i class="fas fa-exclamation-triangle text-warning"></i></small>
+              </div>
+              <p class="mb-1 small">{% trans "Send a warning to the user about their profile" %}</p>
+            </a>
+          {% endif %}
+
+          {% if report.content_type.model == 'character' %}
+            <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#deleteCharacterModal">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">{% trans "Delete Character" %}</h6>
+                <small><i class="fas fa-trash-alt text-danger"></i></small>
+              </div>
+              <p class="mb-1 small">{% trans "Permanently delete the reported character" %}</p>
+            </a>
+          {% elif report.content_type.model == 'charactercomment' %}
+            <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#deleteCommentModal">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">{% trans "Delete Comment" %}</h6>
+                <small><i class="fas fa-trash-alt text-danger"></i></small>
+              </div>
+              <p class="mb-1 small">{% trans "Permanently delete the reported comment" %}</p>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Character Modal -->
+{% if report.content_type.model == 'character' %}
+  <div class="modal fade" id="deleteCharacterModal" tabindex="-1" aria-labelledby="deleteCharacterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteCharacterModalLabel">{% trans "Delete Character" %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {% trans "Warning: This action cannot be undone!" %}
+          </div>
+          <p>{% trans "Are you sure you want to delete the character" %} <strong>{{ report.content_object.name }}</strong>?</p>
+          <form id="deleteCharacterForm" method="post" action="{% url 'moderation:delete_character' report.object_id %}">
+            {% csrf_token %}
+            <input type="hidden" name="report_id" value="{{ report.id }}">
+            <div class="mb-3">
+              <label class="form-label">{% trans "Reason for deletion" %}</label>
+              <textarea name="reason" class="form-control" required></textarea>
+            </div>
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="notifyUser" name="notify_user" checked>
+              <label class="form-check-label" for="notifyUser">{% trans "Notify user of deletion" %}</label>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+          <button type="submit" form="deleteCharacterForm" class="btn btn-danger">
+            <i class="fas fa-trash-alt me-1"></i> {% trans "Delete Character" %}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Delete Comment Modal -->
+{% if report.content_type.model == 'charactercomment' %}
+  <div class="modal fade" id="deleteCommentModal" tabindex="-1" aria-labelledby="deleteCommentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteCommentModalLabel">{% trans "Delete Comment" %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {% trans "Warning: This action cannot be undone!" %}
+          </div>
+          <p>{% trans "Are you sure you want to delete this comment?" %}</p>
+          <blockquote class="blockquote-footer">
+            {{ report.content_object.content|truncatewords:30 }}
+          </blockquote>
+          <form id="deleteCommentForm" method="post" action="{% url 'moderation:delete_comment' report.object_id %}">
+            {% csrf_token %}
+            <input type="hidden" name="report_id" value="{{ report.id }}">
+            <div class="mb-3">
+              <label class="form-label">{% trans "Reason for deletion" %}</label>
+              <textarea name="reason" class="form-control" required></textarea>
+            </div>
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="notifyCommentUser" name="notify_user" checked>
+              <label class="form-check-label" for="notifyCommentUser">{% trans "Notify user of deletion" %}</label>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+          <button type="submit" form="deleteCommentForm" class="btn btn-danger">
+            <i class="fas fa-trash-alt me-1"></i> {% trans "Delete Comment" %}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

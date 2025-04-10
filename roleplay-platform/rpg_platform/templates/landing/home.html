@@ -1,0 +1,424 @@
+{% extends "landing/base_landing.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero py-5">
+    <div class="container">
+        <div class="row hero-content">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <h1 class="display-4 fw-bold mb-4">Immersive Text-Based Roleplay Experience</h1>
+                <p class="lead mb-4">Create characters, craft stories, and connect with other roleplayers in a vibrant community dedicated to creative storytelling and character development.</p>
+                <div class="d-flex flex-wrap">
+                    <a href="#signup-section" class="btn btn-light btn-lg me-3 mb-3 mb-md-0">Get Started</a>
+                    <a href="#features" class="btn btn-outline-light btn-lg">Learn More</a>
+                </div>
+            </div>
+            <div class="col-lg-5 offset-lg-1">
+                <div class="form-container" id="signup-section">
+                    <ul class="nav nav-tabs mb-4" id="authTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-content" type="button" role="tab" aria-controls="login-content" aria-selected="true">Log In</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-content" type="button" role="tab" aria-controls="register-content" aria-selected="false">Sign Up</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="authTabsContent">
+                        <!-- Login Form -->
+                        <div class="tab-pane fade show active" id="login-content" role="tabpanel" aria-labelledby="login-tab">
+                            <form action="{% url 'accounts:login' %}" method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="{{ login_form.username.id_for_label }}" class="form-label">Username</label>
+                                    {{ login_form.username }}
+                                    {% if login_form.username.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ login_form.username.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ login_form.password.id_for_label }}" class="form-label">Password</label>
+                                    {{ login_form.password }}
+                                    {% if login_form.password.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ login_form.password.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="remember-me">
+                                    <label class="form-check-label" for="remember-me">Remember me</label>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg">Log In</button>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <a href="{% url 'accounts:password_reset' %}" class="text-decoration-none">Forgot your password?</a>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Registration Form -->
+                        <div class="tab-pane fade" id="register-content" role="tabpanel" aria-labelledby="register-tab">
+                            <form action="{% url 'accounts:register' %}" method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="{{ register_form.username.id_for_label }}" class="form-label">Username</label>
+                                    {{ register_form.username }}
+                                    {% if register_form.username.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ register_form.username.errors }}
+                                        </div>
+                                    {% endif %}
+                                    {% if register_form.username.help_text %}
+                                        <div class="form-text">{{ register_form.username.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ register_form.email.id_for_label }}" class="form-label">Email</label>
+                                    {{ register_form.email }}
+                                    {% if register_form.email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ register_form.email.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ register_form.password1.id_for_label }}" class="form-label">Password</label>
+                                    {{ register_form.password1 }}
+                                    {% if register_form.password1.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ register_form.password1.errors }}
+                                        </div>
+                                    {% endif %}
+                                    {% if register_form.password1.help_text %}
+                                        <div class="form-text small">{{ register_form.password1.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ register_form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+                                    {{ register_form.password2 }}
+                                    {% if register_form.password2.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ register_form.password2.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="terms-checkbox" required>
+                                    <label class="form-check-label" for="terms-checkbox">
+                                        I agree to the <a href="{% url 'landing:tos' %}" target="_blank">Terms of Service</a>, <a href="{% url 'landing:privacy' %}" target="_blank">Privacy Policy</a>, and <a href="{% url 'landing:community_guidelines' %}" target="_blank">Community Guidelines</a>
+                                    </label>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg">Create Account</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-white" id="features">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Features Built for Roleplayers</h2>
+            <p class="lead text-muted">Everything you need for immersive storytelling experiences</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-theater-masks"></i>
+                    </div>
+                    <h3>Character Creation</h3>
+                    <p class="text-muted">Create detailed characters with rich backgrounds, descriptions, and images. Define personalities, likes, dislikes, and more.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Immersive Chat System</h3>
+                    <p class="text-muted">Engage in real-time roleplay with other users through our advanced chat system with typing effects and seamless character switching.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Privacy & Consent</h3>
+                    <p class="text-muted">Set clear boundaries with our comprehensive consent system. Ensure all parties are comfortable with content before roleplaying.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <h3>Writing Assistance</h3>
+                    <p class="text-muted">Keep notes, save quick responses, and use writing tools to enhance your roleplay experience and maintain consistency.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-images"></i>
+                    </div>
+                    <h3>Scene Settings</h3>
+                    <p class="text-muted">Create immersive environments with scene descriptions, background images, and even theme music to set the mood.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Community Connection</h3>
+                    <p class="text-muted">Find like-minded roleplayers, form friendships, and discover new partners for your roleplaying adventures.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">What Our Community Says</h2>
+            <p class="lead text-muted">Join thousands of satisfied roleplayers</p>
+        </div>
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="mb-3 text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="card-text mb-4">"RoleplayHub has completely transformed my roleplaying experience. The character creation tools are intuitive, and the scene setting features help create truly immersive stories."</p>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">JD</div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-0">Jessica Daniels</h5>
+                                <small class="text-muted">Fantasy Writer</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="mb-3 text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="card-text mb-4">"The privacy and consent features are what set this platform apart. I feel safe exploring different storylines knowing that boundaries are clearly established and respected."</p>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">MR</div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-0">Michael Rodriguez</h5>
+                                <small class="text-muted">Sci-Fi Enthusiast</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="mb-3 text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <p class="card-text mb-4">"I've tried several roleplay platforms, but the community here is truly special. I've found amazing writing partners and created stories I never thought possible."</p>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">AT</div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-0">Alex Thompson</h5>
+                                <small class="text-muted">Romance Roleplayer</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-5 bg-white" id="faq">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Frequently Asked Questions</h2>
+            <p class="lead text-muted">Everything you need to know before getting started</p>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Is RoleplayHub completely free to use?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, RoleplayHub is completely free to use. We offer all core features without any cost. In the future, we may introduce premium features for enhanced experiences, but the basic functionality will always remain free.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                What kind of roleplay content is allowed?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                We allow a wide range of content, but all users must be 18+ for adult-themed roleplay. We have clear community guidelines that prohibit illegal content, harassment, or non-consensual themes. Our platform emphasizes consent, so all participants must agree on content boundaries before engaging in roleplay.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                How do I find roleplay partners?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                We offer various ways to connect with potential roleplay partners. You can browse character profiles, use our search feature to find users with similar interests, join public chat rooms, or create listings for the type of roleplay you're interested in. Our recommendation system also suggests compatible partners based on your preferences.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                Can I import characters from other platforms?
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                While we don't have a direct import feature, you can easily recreate your characters in our comprehensive character builder. We offer extensive customization options, multiple image uploads, and detailed fields for background, personality, appearance, and more.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFive">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                How does the consent system work?
+                            </button>
+                        </h2>
+                        <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Our consent system allows users to set clear boundaries before beginning a roleplay. You can specify allowed content, soft limits, and hard limits. Both participants must acknowledge and agree to these boundaries before the roleplay can begin. This ensures a safe and comfortable experience for everyone involved.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-5">
+            <p>Still have questions? <a href="#" class="text-primary text-decoration-none">Contact us</a> for more information.</p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <h2 class="fw-bold mb-3">Ready to Start Your Roleplay Journey?</h2>
+                <p class="lead mb-0">Join our community of storytellers and bring your characters to life today.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="#signup-section" class="btn btn-light btn-lg px-4">Sign Up Now</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 70, // Adjust for navbar height
+                    behavior: 'smooth'
+                });
+
+                // If the target is the signup section, focus on the first form field
+                if (targetId === '#signup-section') {
+                    // Check which tab is active
+                    if (document.getElementById('login-tab').classList.contains('active')) {
+                        setTimeout(() => {
+                            document.getElementById('{{ login_form.username.id_for_label }}').focus();
+                        }, 800);
+                    } else {
+                        setTimeout(() => {
+                            document.getElementById('{{ register_form.username.id_for_label }}').focus();
+                        }, 800);
+                    }
+                }
+            }
+        });
+    });
+
+    // Switch tabs and update URL hash
+    const authTabs = document.querySelectorAll('#authTabs .nav-link');
+    authTabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function (e) {
+            const tabId = e.target.id;
+            if (tabId === 'register-tab') {
+                window.history.replaceState(null, null, '#signup');
+            } else {
+                window.history.replaceState(null, null, '#login');
+            }
+        });
+    });
+
+    // Check URL hash on page load to set active tab
+    window.addEventListener('load', function() {
+        if (window.location.hash === '#signup') {
+            const registerTab = document.getElementById('register-tab');
+            new bootstrap.Tab(registerTab).show();
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Scene Settings" %} | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .scene-preview {
+        height: 120px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .scene-overlay {
+        background: rgba(0,0,0,0.6);
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 1rem;
+        color: white;
+        transition: background 0.3s;
+    }
+    .scene-preview:hover .scene-overlay {
+        background: rgba(0,0,0,0.4);
+    }
+    .scene-card {
+        transition: transform 0.2s;
+        cursor: pointer;
+    }
+    .scene-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .scene-description {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">{% trans "Scene Settings" %}</h1>
+            <p class="text-muted">
+                {% trans "Create and manage scene settings for your roleplays." %}
+            </p>
+        </div>
+        <div class="col-auto align-self-center">
+            <a href="{% url 'messages:scene_setting_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> {% trans "New Scene Setting" %}
+            </a>
+        </div>
+    </div>
+
+    {% if scene_settings %}
+        <div class="row">
+            {% for setting in scene_settings %}
+                <div class="col-md-4 mb-4">
+                    <div class="card scene-card h-100">
+                        <div class="scene-preview"
+                             style="background-color: {{ setting.background_color|default:'#333' }};
+                                    {% if setting.image_url %}
+                                    background-image: url('{{ setting.image_url }}');
+                                    {% endif %}">
+                            <div class="scene-overlay">
+                                <h3 class="h5 mb-1">{{ setting.title }}</h3>
+                                <div class="scene-description">{{ setting.description|truncatechars:100 }}</div>
+                                {% if setting.music_url %}
+                                    <div class="mt-2"><i class="fas fa-music"></i> {% trans "Has music" %}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light d-flex justify-content-between">
+                            <div>
+                                {% if setting.is_public %}
+                                    <span class="badge bg-success">{% trans "Public" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "Private" %}</span>
+                                {% endif %}
+                                <span class="badge bg-info ms-1">{{ setting.use_count }} {% trans "uses" %}</span>
+                            </div>
+                            <div class="btn-group btn-group-sm">
+                                {% if setting.user == request.user %}
+                                    <a href="{% url 'messages:scene_setting_update' setting.pk %}"
+                                       class="btn btn-outline-primary"
+                                       data-bs-toggle="tooltip"
+                                       title="{% trans 'Edit' %}">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'messages:scene_setting_delete' setting.pk %}"
+                                       class="btn btn-outline-danger"
+                                       data-bs-toggle="tooltip"
+                                       title="{% trans 'Delete' %}">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            {% trans "You don't have any scene settings yet. Create one to quickly apply pre-defined backgrounds, descriptions, and ambiance to your roleplay scenes." %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(function () {
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %}

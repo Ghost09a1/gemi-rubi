@@ -1,0 +1,575 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load moderation_tags %}
+
+{% block title %}{% trans "Advanced Search" %} - {% trans "Moderation" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .search-form {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .search-results {
+    margin-top: 2rem;
+  }
+
+  .character-card {
+    margin-bottom: 1.5rem;
+    transition: transform 0.2s;
+  }
+
+  .character-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+  }
+
+  .character-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-top-left-radius: calc(0.25rem - 1px);
+    border-top-right-radius: calc(0.25rem - 1px);
+  }
+
+  .character-placeholder {
+    width: 100%;
+    height: 180px;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 2rem;
+    border-top-left-radius: calc(0.25rem - 1px);
+    border-top-right-radius: calc(0.25rem - 1px);
+  }
+
+  .user-row {
+    transition: transform 0.2s;
+    margin-bottom: 0.5rem;
+  }
+
+  .user-row:hover {
+    transform: translateY(-2px);
+    background-color: #f8f9fa;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .user-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 1rem;
+  }
+
+  .visibility-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.7rem;
+    z-index: 2;
+  }
+
+  .tab-content {
+    padding-top: 1rem;
+  }
+
+  .results-container {
+    min-height: 200px;
+  }
+
+  .search-stats {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-0">{% trans "Advanced Search" %}</h1>
+      <p class="text-muted">{% trans "Search for characters and users using advanced filters" %}</p>
+    </div>
+    <div>
+      <a href="{% url 'moderation:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> {% trans "Back to Dashboard" %}
+      </a>
+    </div>
+  </div>
+
+  <!-- Search Form -->
+  <div class="search-form">
+    <form method="get" action="{% url 'moderation:advanced_search' %}">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">{% trans "Search Term" %}</label>
+          <input type="text" name="q" class="form-control" value="{{ search_term|default:'' }}" placeholder="{% trans 'Enter search terms...' %}" required>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">{% trans "Search In" %}</label>
+          <select name="type" class="form-select">
+            <option value="character" {% if search_type == 'character' %}selected{% endif %}>{% trans "Characters" %}</option>
+            <option value="user" {% if search_type == 'user' %}selected{% endif %}>{% trans "Users" %}</option>
+            <option value="both" {% if search_type == 'both' %}selected{% endif %}>{% trans "Both" %}</option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">{% trans "Field" %}</label>
+          <select name="field" class="form-select">
+            <option value="any" {% if search_field == 'any' %}selected{% endif %}>{% trans "Any Field" %}</option>
+            <option value="name" {% if search_field == 'name' %}selected{% endif %}>{% trans "Name/Username" %}</option>
+            <option value="description" {% if search_field == 'description' %}selected{% endif %}>{% trans "Description/Bio" %}</option>
+            <option value="kinks" {% if search_field == 'kinks' %}selected{% endif %}>{% trans "Character Kinks" %}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Advanced Filters -->
+      <div class="row mt-3">
+        <div class="col-12">
+          <button class="btn btn-link p-0 mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
+            <i class="fas fa-filter me-1"></i> {% trans "Advanced Filters" %}
+          </button>
+        </div>
+      </div>
+
+      <div class="collapse" id="advancedFilters">
+        <div class="row mb-3">
+          <!-- Character-specific filters -->
+          <div class="col-md-3">
+            <label class="form-label">{% trans "Visibility" %}</label>
+            <select name="visibility" class="form-select">
+              <option value="">{% trans "All Visibilities" %}</option>
+              <option value="public" {% if request.GET.visibility == 'public' %}selected{% endif %}>{% trans "Public" %}</option>
+              <option value="private" {% if request.GET.visibility == 'private' %}selected{% endif %}>{% trans "Private" %}</option>
+              <option value="friends" {% if request.GET.visibility == 'friends' %}selected{% endif %}>{% trans "Friends Only" %}</option>
+            </select>
+          </div>
+
+          <!-- User-specific filters -->
+          <div class="col-md-3">
+            <label class="form-label">{% trans "User Role" %}</label>
+            <select name="role" class="form-select">
+              <option value="">{% trans "All Roles" %}</option>
+              <option value="regular" {% if request.GET.role == 'regular' %}selected{% endif %}>{% trans "Regular Users" %}</option>
+              <option value="staff" {% if request.GET.role == 'staff' %}selected{% endif %}>{% trans "Staff" %}</option>
+              <option value="superuser" {% if request.GET.role == 'superuser' %}selected{% endif %}>{% trans "Administrators" %}</option>
+            </select>
+          </div>
+
+          <!-- Common filters -->
+          <div class="col-md-3">
+            <label class="form-label">{% trans "Date Filter" %}</label>
+            <select name="date_filter" class="form-select">
+              <option value="">{% trans "All Time" %}</option>
+              <option value="today" {% if request.GET.date_filter == 'today' %}selected{% endif %}>{% trans "Today" %}</option>
+              <option value="week" {% if request.GET.date_filter == 'week' %}selected{% endif %}>{% trans "This Week" %}</option>
+              <option value="month" {% if request.GET.date_filter == 'month' %}selected{% endif %}>{% trans "This Month" %}</option>
+              <option value="year" {% if request.GET.date_filter == 'year' %}selected{% endif %}>{% trans "This Year" %}</option>
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">{% trans "Results Per Page" %}</label>
+            <select name="per_page" class="form-select">
+              <option value="12" {% if per_page == 12 %}selected{% endif %}>12</option>
+              <option value="24" {% if per_page == 24 %}selected{% endif %}>24</option>
+              <option value="48" {% if per_page == 48 %}selected{% endif %}>48</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label">{% trans "Username" %} ({% trans "exact match" %})</label>
+            <input type="text" name="user" class="form-control" value="{{ request.GET.user|default:'' }}" placeholder="{% trans 'Filter by specific username' %}">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{% trans "Sort By" %}</label>
+            <select name="sort" class="form-select">
+              <option value="-created_at" {% if request.GET.sort == '-created_at' %}selected{% endif %}>{% trans "Newest First" %}</option>
+              <option value="created_at" {% if request.GET.sort == 'created_at' %}selected{% endif %}>{% trans "Oldest First" %}</option>
+              <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>{% trans "Name (A-Z)" %}</option>
+              <option value="-name" {% if request.GET.sort == '-name' %}selected{% endif %}>{% trans "Name (Z-A)" %}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-3">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-search me-1"></i> {% trans "Search" %}
+        </button>
+        <a href="{% url 'moderation:advanced_search' %}" class="btn btn-outline-secondary ms-2">
+          <i class="fas fa-redo me-1"></i> {% trans "Reset" %}
+        </a>
+      </div>
+    </form>
+  </div>
+
+  {% if search_performed %}
+    <div class="search-results">
+      <ul class="nav nav-tabs" id="searchTabs" role="tablist">
+        {% if search_type == 'character' or search_type == 'both' %}
+          <li class="nav-item" role="presentation">
+            <button class="nav-link {% if search_type == 'character' or character_count > 0 %}active{% endif %}" id="characters-tab" data-bs-toggle="tab" data-bs-target="#characters" type="button" role="tab" aria-controls="characters" aria-selected="true">
+              {% trans "Characters" %} ({{ character_count }})
+            </button>
+          </li>
+        {% endif %}
+
+        {% if search_type == 'user' or search_type == 'both' %}
+          <li class="nav-item" role="presentation">
+            <button class="nav-link {% if search_type == 'user' and user_count > 0 %}active{% endif %}" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="false">
+              {% trans "Users" %} ({{ user_count }})
+            </button>
+          </li>
+        {% endif %}
+      </ul>
+
+      <div class="tab-content" id="searchTabsContent">
+        <!-- Characters Tab -->
+        {% if search_type == 'character' or search_type == 'both' %}
+          <div class="tab-pane fade {% if search_type == 'character' or character_count > 0 %}show active{% endif %}" id="characters" role="tabpanel" aria-labelledby="characters-tab">
+            <div class="search-stats">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>{% trans "Characters Found" %}:</strong> {{ character_count }}
+                  {% if character_count > 0 %}
+                    <span class="text-muted">
+                      {% trans "Showing" %} {{ character_results|length }} {% trans "results" %}
+                    </span>
+                  {% endif %}
+                </div>
+
+                {% if total_pages > 1 %}
+                  <div>
+                    <span class="text-muted">{% trans "Page" %} {{ page }} {% trans "of" %} {{ total_pages }}</span>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="results-container">
+              {% if character_results %}
+                <div class="row">
+                  {% for result in character_results %}
+                    <div class="col-md-3">
+                      <div class="card character-card">
+                        <div class="position-relative">
+                          <span class="badge bg-{{ result.character.visibility|yesno:'danger,success,warning' }} visibility-badge">
+                            {{ result.character.get_visibility_display }}
+                          </span>
+
+                          {% if result.image_url %}
+                            <img src="{{ result.image_url }}" alt="{{ result.character.name }}" class="character-image">
+                          {% else %}
+                            <div class="character-placeholder">
+                              <i class="fas fa-user-circle"></i>
+                            </div>
+                          {% endif %}
+                        </div>
+
+                        <div class="card-body">
+                          <h5 class="card-title">{{ result.character.name }}</h5>
+                          <p class="card-text small text-muted">
+                            {% trans "by" %} <a href="{% url 'moderation:user_detail' result.character.user.username %}">{{ result.character.user.username }}</a>
+                          </p>
+                          <p class="card-text">{{ result.character.description|truncatechars:100 }}</p>
+
+                          <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                              <i class="fas fa-comments me-1"></i> {{ result.comment_count }}
+                            </small>
+                            <div>
+                              <a href="{% url 'characters:detail' result.character.id %}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                <i class="fas fa-eye me-1"></i> {% trans "View" %}
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                          <small class="text-muted">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            {{ result.character.created_at|date:"M j, Y" }}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if character_count > per_page %}
+                  <div class="d-flex justify-content-center mt-4">
+                    <nav aria-label="{% trans 'Character pagination' %}">
+                      <ul class="pagination">
+                        {% if has_prev %}
+                          <li class="page-item">
+                            <a class="page-link" href="?{% url_replace page=1 %}" aria-label="{% trans 'First' %}">
+                              <i class="fas fa-angle-double-left"></i>
+                            </a>
+                          </li>
+                          <li class="page-item">
+                            <a class="page-link" href="?{% url_replace page=page|add:'-1' %}" aria-label="{% trans 'Previous' %}">
+                              <i class="fas fa-angle-left"></i>
+                            </a>
+                          </li>
+                        {% else %}
+                          <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                          </li>
+                          <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                          </li>
+                        {% endif %}
+
+                        {% for i in total_pages|get_range %}
+                          {% if i == page %}
+                            <li class="page-item active">
+                              <span class="page-link">{{ i }}</span>
+                            </li>
+                          {% elif i > page|add:'-3' and i < page|add:'3' %}
+                            <li class="page-item">
+                              <a class="page-link" href="?{% url_replace page=i %}">{{ i }}</a>
+                            </li>
+                          {% endif %}
+                        {% endfor %}
+
+                        {% if has_next %}
+                          <li class="page-item">
+                            <a class="page-link" href="?{% url_replace page=page|add:'1' %}" aria-label="{% trans 'Next' %}">
+                              <i class="fas fa-angle-right"></i>
+                            </a>
+                          </li>
+                          <li class="page-item">
+                            <a class="page-link" href="?{% url_replace page=total_pages %}" aria-label="{% trans 'Last' %}">
+                              <i class="fas fa-angle-double-right"></i>
+                            </a>
+                          </li>
+                        {% else %}
+                          <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                          </li>
+                          <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                          </li>
+                        {% endif %}
+                      </ul>
+                    </nav>
+                  </div>
+                {% endif %}
+              {% else %}
+                <div class="text-center py-5">
+                  <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                  <h3>{% trans "No Characters Found" %}</h3>
+                  <p class="text-muted">{% trans "Try adjusting your search terms or filters." %}</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Users Tab -->
+        {% if search_type == 'user' or search_type == 'both' %}
+          <div class="tab-pane fade {% if search_type == 'user' and user_count > 0 %}show active{% endif %}" id="users" role="tabpanel" aria-labelledby="users-tab">
+            <div class="search-stats">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>{% trans "Users Found" %}:</strong> {{ user_count }}
+                  {% if user_count > 0 %}
+                    <span class="text-muted">
+                      {% trans "Showing" %} {{ user_results|length }} {% trans "results" %}
+                    </span>
+                  {% endif %}
+                </div>
+
+                {% if total_pages > 1 %}
+                  <div>
+                    <span class="text-muted">{% trans "Page" %} {{ page }} {% trans "of" %} {{ total_pages }}</span>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="results-container">
+              {% if user_results %}
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>{% trans "User" %}</th>
+                        <th>{% trans "Joined" %}</th>
+                        <th>{% trans "Last Active" %}</th>
+                        <th>{% trans "Characters" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Actions" %}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for result in user_results %}
+                        <tr class="user-row">
+                          <td>
+                            <div class="d-flex align-items-center">
+                              <div class="me-3">
+                                {% if result.user.profile.avatar %}
+                                  <img src="{{ result.user.profile.get_avatar_url }}" alt="{{ result.user.username }}" class="user-avatar">
+                                {% else %}
+                                  <div class="user-avatar-placeholder">
+                                    <i class="fas fa-user"></i>
+                                  </div>
+                                {% endif %}
+                              </div>
+                              <div>
+                                <div>
+                                  <a href="{% url 'moderation:user_detail' result.user.username %}">
+                                    {{ result.user.username }}
+                                  </a>
+                                  {% if result.user.is_superuser %}
+                                    <span class="badge bg-danger">{% trans "Admin" %}</span>
+                                  {% elif result.user.is_staff %}
+                                    <span class="badge bg-info">{% trans "Staff" %}</span>
+                                  {% endif %}
+                                </div>
+                                <div class="small text-muted">
+                                  {% if result.user.profile %}
+                                    {{ result.user.profile.display_name|default:"" }}
+                                  {% endif %}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>{{ result.user.date_joined|date:"M j, Y" }}</td>
+                          <td>
+                            {% if result.last_active %}
+                              {{ result.last_active|timesince }} {% trans "ago" %}
+                            {% else %}
+                              <span class="text-muted">{% trans "Never" %}</span>
+                            {% endif %}
+                          </td>
+                          <td>{{ result.character_count }}</td>
+                          <td>
+                            {% if result.user.is_active %}
+                              <span class="badge bg-success">{% trans "Active" %}</span>
+                            {% else %}
+                              <span class="badge bg-warning text-dark">{% trans "Inactive" %}</span>
+                            {% endif %}
+                          </td>
+                          <td>
+                            <a href="{% url 'moderation:user_detail' result.user.username %}" class="btn btn-sm btn-primary">
+                              <i class="fas fa-eye me-1"></i> {% trans "View" %}
+                            </a>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if user_count > per_page %}
+                  <div class="d-flex justify-content-center mt-4">
+                    <nav aria-label="{% trans 'User pagination' %}">
+                      <ul class="pagination">
+                        {% if has_prev %}
+                          <li class="page-item">
+                            <a class="page-link" href="?{% url_replace page=1 %}" aria-label="{% trans 'First' %}">
+                              <i class="fas fa-angle-double-left"></i>
+                            </a>
+                          </li>
+                          <li class="page-item">
+                            <a class="page-link" href="?{% url_replace page=page|add:'-1' %}" aria-label="{% trans 'Previous' %}">
+                              <i class="fas fa-angle-left"></i>
+                            </a>
+                          </li>
+                        {% else %}
+                          <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                          </li>
+                          <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                          </li>
+                        {% endif %}
+
+                        {% for i in total_pages|get_range %}
+                          {% if i == page %}
+                            <li class="page-item active">
+                              <span class="page-link">{{ i }}</span>
+                            </li>
+                          {% elif i > page|add:'-3' and i < page|add:'3' %}
+                            <li class="page-item">
+                              <a class="page-link" href="?{% url_replace page=i %}">{{ i }}</a>
+                            </li>
+                          {% endif %}
+                        {% endfor %}
+
+                        {% if has_next %}
+                          <li class="page-item">
+                            <a class="page-link" href="?{% url_replace page=page|add:'1' %}" aria-label="{% trans 'Next' %}">
+                              <i class="fas fa-angle-right"></i>
+                            </a>
+                          </li>
+                          <li class="page-item">
+                            <a class="page-link" href="?{% url_replace page=total_pages %}" aria-label="{% trans 'Last' %}">
+                              <i class="fas fa-angle-double-right"></i>
+                            </a>
+                          </li>
+                        {% else %}
+                          <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                          </li>
+                          <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                          </li>
+                        {% endif %}
+                      </ul>
+                    </nav>
+                  </div>
+                {% endif %}
+              {% else %}
+                <div class="text-center py-5">
+                  <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                  <h3>{% trans "No Users Found" %}</h3>
+                  <p class="text-muted">{% trans "Try adjusting your search terms or filters." %}</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% else %}
+    <div class="card mb-4">
+      <div class="card-body text-center py-5">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h3>{% trans "Enter Search Terms" %}</h3>
+        <p class="text-muted">{% trans "Use the form above to search for characters or users." %}</p>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

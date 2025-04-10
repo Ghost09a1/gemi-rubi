@@ -1,0 +1,720 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Home" %} | RoleplayHub{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --primary-color: #6246ea;
+    --secondary-color: #d1d1e9;
+    --accent-color: #e45858;
+    --background-color: #f9f9f9;
+    --card-color: #ffffff;
+    --text-color: #2b2c34;
+    --text-secondary: #6c757d;
+    --border-radius: 12px;
+    --box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+    --hover-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    --transition-speed: 0.3s;
+  }
+
+  .dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  .dashboard-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #6246ea 0%, #a29bfe 100%);
+    color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+  }
+
+  .dashboard-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .dashboard-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+  }
+
+  .stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background-color: var(--card-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    text-align: center;
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+  }
+
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--hover-shadow);
+  }
+
+  .stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+  }
+
+  .stat-label {
+    color: var(--text-secondary);
+    font-size: 1rem;
+  }
+
+  .main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 992px) {
+    .main-content {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .feature-section {
+    background-color: var(--card-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--box-shadow);
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .section-header h2 {
+    font-size: 1.5rem;
+    margin: 0;
+    color: var(--text-color);
+  }
+
+  .section-header a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .feature-card {
+    background-color: var(--card-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--hover-shadow);
+  }
+
+  .feature-icon {
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #6246ea 0%, #a29bfe 100%);
+    color: white;
+    font-size: 3rem;
+  }
+
+  .feature-icon.characters {
+    background: linear-gradient(135deg, #2e3192 0%, #1bffff 100%);
+  }
+
+  .feature-icon.chat {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  }
+
+  .feature-icon.forum {
+    background: linear-gradient(135deg, #f46b45 0%, #eea849 100%);
+  }
+
+  .feature-icon.dating {
+    background: linear-gradient(135deg, #f953c6 0%, #b91d73 100%);
+  }
+
+  .feature-icon.recommendations {
+    background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+  }
+
+  .feature-icon.notifications {
+    background: linear-gradient(135deg, #f953c6 0%, #b91d73 100%);
+  }
+
+  .feature-content {
+    padding: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .feature-content h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    color: var(--text-color);
+  }
+
+  .feature-content p {
+    margin: 0 0 1.5rem 0;
+    color: var(--text-secondary);
+    flex-grow: 1;
+  }
+
+  .feature-link {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+    text-align: center;
+    transition: background-color var(--transition-speed);
+  }
+
+  .feature-link:hover {
+    background-color: #5234d4;
+    color: white;
+  }
+
+  .activity-list, .chatroom-list, .character-list {
+    margin-bottom: 1rem;
+  }
+
+  .activity-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .activity-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .activity-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--text-secondary);
+  }
+
+  .activity-content {
+    flex-grow: 1;
+  }
+
+  .activity-content p {
+    margin: 0;
+    color: var(--text-color);
+  }
+
+  .activity-time {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+  }
+
+  .notifications-section {
+    margin-bottom: 2rem;
+  }
+
+  .notification-item {
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 0.75rem;
+    background-color: var(--card-color);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border-left: 4px solid var(--primary-color);
+  }
+
+  .notification-item.unread {
+    background-color: #f0f7ff;
+  }
+
+  .notification-content {
+    display: flex;
+    align-items: center;
+  }
+
+  .notification-icon {
+    margin-right: 1rem;
+    font-size: 1.25rem;
+    color: var(--primary-color);
+  }
+
+  .notification-text {
+    flex-grow: 1;
+  }
+
+  .notification-time {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .btn-view-all {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    text-align: center;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color var(--transition-speed);
+  }
+
+  .btn-view-all:hover {
+    background-color: #c1c1d7;
+    color: var(--text-color);
+  }
+
+  .recent-items-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .recent-item-card {
+    background-color: var(--card-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+  }
+
+  .recent-item-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .recent-item-img {
+    height: 120px;
+    background-color: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+  }
+
+  .recent-item-content {
+    padding: 0.75rem;
+  }
+
+  .recent-item-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .recent-item-meta {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 768px) {
+    .stats-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .feature-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .recent-items-list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stats-container {
+      grid-template-columns: 1fr;
+    }
+
+    .recent-items-list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <h1>{% trans "Welcome to RoleplayHub" %}</h1>
+    <p>{% trans "Your central hub for roleplay adventures, character creation, and connecting with fellow roleplayers" %}</p>
+  </div>
+
+  <!-- Stats Overview -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-user-circle"></i>
+      </div>
+      <div class="stat-value">{{ character_count|default:"0" }}</div>
+      <div class="stat-label">{% trans "Your Characters" %}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-comments"></i>
+      </div>
+      <div class="stat-value">{{ chatroom_count|default:"0" }}</div>
+      <div class="stat-label">{% trans "Active Chats" %}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="stat-value">{{ friend_count|default:"0" }}</div>
+      <div class="stat-label">{% trans "Friends" %}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-bell"></i>
+      </div>
+      <div class="stat-value">{{ notification_count|default:"0" }}</div>
+      <div class="stat-label">{% trans "Notifications" %}</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Left Column -->
+    <div class="left-column">
+      <!-- Main Features Section -->
+      <div class="feature-section">
+        <div class="section-header">
+          <h2>{% trans "Explore RoleplayHub" %}</h2>
+        </div>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon characters">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="feature-content">
+              <h3>{% trans "Characters" %}</h3>
+              <p>{% trans "Create and manage your roleplaying characters with detailed profiles and customization options." %}</p>
+              <a href="{% url 'characters:character_list' %}" class="feature-link">{% trans "My Characters" %}</a>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon chat">
+              <i class="fas fa-comments"></i>
+            </div>
+            <div class="feature-content">
+              <h3>{% trans "Chat Rooms" %}</h3>
+              <p>{% trans "Join immersive chat rooms to roleplay with others or create your own private role-playing scenes." %}</p>
+              <a href="{% url 'messages:room_list' %}" class="feature-link">{% trans "Chat Now" %}</a>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon forum">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="feature-content">
+              <h3>{% trans "Friends" %}</h3>
+              <p>{% trans "Connect with other roleplayers, build your network, and find new roleplaying partners." %}</p>
+              <a href="{% url 'accounts:friend_list' %}" class="feature-link">{% trans "Manage Friends" %}</a>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon dating">
+              <i class="fas fa-heart"></i>
+            </div>
+            <div class="feature-content">
+              <h3>{% trans "Dating App" %}</h3>
+              <p>{% trans "Find roleplay partners with similar interests and preferences for better character interactions." %}</p>
+              <a href="{% url 'accounts:browse_dating_profiles' %}" class="feature-link">{% trans "Find Partners" %}</a>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon recommendations">
+              <i class="fas fa-compass"></i>
+            </div>
+            <div class="feature-content">
+              <h3>{% trans "Recommendations" %}</h3>
+              <p>{% trans "Discover new characters and roleplay partners tailored to your preferences and interests." %}</p>
+              <a href="{% url 'recommendations:character_recommendations' %}" class="feature-link">{% trans "Explore" %}</a>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon notifications">
+              <i class="fas fa-bell"></i>
+            </div>
+            <div class="feature-content">
+              <h3>{% trans "Notifications" %}</h3>
+              <p>{% trans "Stay updated on messages, comments, friend requests, and other important activities." %}</p>
+              <a href="{% url 'notifications:notification_list' %}" class="feature-link">{% trans "View All" %}</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity Section -->
+      <div class="feature-section">
+        <div class="section-header">
+          <h2>{% trans "Recent Activity" %}</h2>
+          <a href="{% url 'accounts:activity_list' %}">{% trans "View All" %}</a>
+        </div>
+
+        <div class="activity-list">
+          {% if activities %}
+            {% for activity in activities %}
+              <div class="activity-item">
+                <div class="activity-avatar">
+                  {% if activity.user.profile.avatar %}
+                    <img src="{{ activity.user.profile.get_avatar_url }}" alt="{{ activity.user.username }}">
+                  {% else %}
+                    {{ activity.user.username|slice:":1"|upper }}
+                  {% endif %}
+                </div>
+                <div class="activity-content">
+                  <p>{{ activity.get_description }}</p>
+                  <div class="activity-time">{{ activity.created_at|timesince }} {% trans "ago" %}</div>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted">{% trans "No recent activity to show." %}</p>
+          {% endif %}
+        </div>
+
+        {% if activities %}
+          <a href="{% url 'accounts:activity_list' %}" class="btn-view-all mt-3">{% trans "View All Activity" %}</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="right-column">
+      <!-- Notifications Section -->
+      <div class="feature-section notifications-section">
+        <div class="section-header">
+          <h2>{% trans "Notifications" %}</h2>
+          <a href="{% url 'notifications:notification_list' %}">{% trans "View All" %}</a>
+        </div>
+
+        <div class="notifications-list">
+          {% if notifications %}
+            {% for notification in notifications %}
+              <div class="notification-item {% if not notification.read %}unread{% endif %}">
+                <div class="notification-content">
+                  <div class="notification-icon">
+                    {% if notification.type == 'message' %}
+                      <i class="fas fa-envelope"></i>
+                    {% elif notification.type == 'friend_request' %}
+                      <i class="fas fa-user-friends"></i>
+                    {% elif notification.type == 'comment' %}
+                      <i class="fas fa-comment"></i>
+                    {% elif notification.type == 'rating' %}
+                      <i class="fas fa-star"></i>
+                    {% else %}
+                      <i class="fas fa-bell"></i>
+                    {% endif %}
+                  </div>
+                  <div class="notification-text">
+                    <p>{{ notification.message }}</p>
+                    <div class="notification-time">{{ notification.created_at|timesince }} {% trans "ago" %}</div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted">{% trans "No notifications to show." %}</p>
+          {% endif %}
+        </div>
+
+        {% if notifications %}
+          <a href="{% url 'notifications:notification_list' %}" class="btn-view-all mt-3">{% trans "View All Notifications" %}</a>
+        {% endif %}
+      </div>
+
+      <!-- Friend Requests Section -->
+      {% if friend_requests %}
+        <div class="feature-section">
+          <div class="section-header">
+            <h2>{% trans "Friend Requests" %}</h2>
+            <a href="{% url 'accounts:friend_request_list' %}">{% trans "View All" %}</a>
+          </div>
+
+          <div class="friend-requests-list">
+            {% for request in friend_requests %}
+              <div class="activity-item">
+                <div class="activity-avatar">
+                  {% if request.from_user.profile.avatar %}
+                    <img src="{{ request.from_user.profile.get_avatar_url }}" alt="{{ request.from_user.username }}">
+                  {% else %}
+                    {{ request.from_user.username|slice:":1"|upper }}
+                  {% endif %}
+                </div>
+                <div class="activity-content">
+                  <p>{{ request.from_user.profile.get_display_name }} {% trans "sent you a friend request" %}</p>
+                  <div class="activity-time">{{ request.created_at|timesince }} {% trans "ago" %}</div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <a href="{% url 'accounts:friend_request_list' %}" class="btn-view-all mt-3">{% trans "View All Requests" %}</a>
+        </div>
+      {% endif %}
+
+      <!-- Recent Characters Section -->
+      <div class="feature-section">
+        <div class="section-header">
+          <h2>{% trans "Your Characters" %}</h2>
+          <a href="{% url 'characters:character_list' %}">{% trans "View All" %}</a>
+        </div>
+
+        <div class="recent-items-list">
+          {% if characters %}
+            {% for character in characters %}
+              <a href="{% url 'characters:character_detail' character.id %}" class="text-decoration-none">
+                <div class="recent-item-card">
+                  <div class="recent-item-img">
+                    {% if character.has_images %}
+                      <img src="{{ character.get_primary_image.image.url }}" alt="{{ character.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                      <i class="fas fa-user-circle fa-3x"></i>
+                    {% endif %}
+                  </div>
+                  <div class="recent-item-content">
+                    <div class="recent-item-title">{{ character.name }}</div>
+                    <div class="recent-item-meta">
+                      {{ character.gender }} · {{ character.species }}
+                    </div>
+                  </div>
+                </div>
+              </a>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted">{% trans "You haven't created any characters yet." %}</p>
+          {% endif %}
+        </div>
+
+        {% if characters %}
+          <a href="{% url 'characters:character_list' %}" class="btn-view-all mt-3">{% trans "View All Characters" %}</a>
+        {% else %}
+          <a href="{% url 'characters:character_create' %}" class="btn-view-all mt-3">{% trans "Create Your First Character" %}</a>
+        {% endif %}
+      </div>
+
+      <!-- Recent Chats Section -->
+      <div class="feature-section">
+        <div class="section-header">
+          <h2>{% trans "Active Chats" %}</h2>
+          <a href="{% url 'messages:room_list' %}">{% trans "View All" %}</a>
+        </div>
+
+        <div class="chatroom-list">
+          {% if chat_rooms %}
+            {% for room in chat_rooms %}
+              <a href="{% url 'messages:room_detail' room.id %}" class="text-decoration-none">
+                <div class="activity-item">
+                  <div class="activity-avatar">
+                    {% if room.name %}
+                      {{ room.name|slice:":1"|upper }}
+                    {% else %}
+                      <i class="fas fa-comments"></i>
+                    {% endif %}
+                  </div>
+                  <div class="activity-content">
+                    <p>
+                      {% if room.name %}
+                        {{ room.name }}
+                      {% else %}
+                        {% for participant in room.participants.all %}
+                          {% if participant != user %}
+                            {{ participant.username }}{% if not forloop.last %}, {% endif %}
+                          {% endif %}
+                        {% endfor %}
+                      {% endif %}
+                    </p>
+                    <div class="activity-time">
+                      {% if room.last_message_time %}
+                        {{ room.last_message_time|timesince }} {% trans "ago" %}
+                      {% else %}
+                        {% trans "No messages yet" %}
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </a>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted">{% trans "You don't have any active chat rooms." %}</p>
+          {% endif %}
+        </div>
+
+        {% if chat_rooms %}
+          <a href="{% url 'messages:room_list' %}" class="btn-view-all mt-3">{% trans "View All Chats" %}</a>
+        {% else %}
+          <a href="{% url 'messages:room_create' %}" class="btn-view-all mt-3">{% trans "Start a New Chat" %}</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

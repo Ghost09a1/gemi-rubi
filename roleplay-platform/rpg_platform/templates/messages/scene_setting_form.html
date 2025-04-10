@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        {% trans "Edit Scene Setting" %} | {{ block.super }}
+    {% else %}
+        {% trans "New Scene Setting" %} | {{ block.super }}
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/spectrum-colorpicker2/dist/spectrum.min.css">
+<style>
+    .scene-preview {
+        min-height: 150px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+        transition: background 0.3s;
+        background-color: #333;
+    }
+    .scene-overlay {
+        background: rgba(0,0,0,0.5);
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 1rem;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col">
+            {% if form.instance.pk %}
+                <h1 class="h2">{% trans "Edit Scene Setting" %}</h1>
+            {% else %}
+                <h1 class="h2">{% trans "New Scene Setting" %}</h1>
+                <p class="text-muted">
+                    {% trans "Create a reusable scene setting template to quickly apply to your roleplays." %}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            {{ form.title.label_tag }}
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.title.errors }}
+                                </div>
+                            {% endif %}
+                            {% if form.title.help_text %}
+                                <small class="form-text text-muted">{{ form.title.help_text }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.description.label_tag }}
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.description.errors }}
+                                </div>
+                            {% endif %}
+                            {% if form.description.help_text %}
+                                <small class="form-text text-muted">{{ form.description.help_text }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.background_color.label_tag }}
+                            {{ form.background_color }}
+                            {% if form.background_color.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.background_color.errors }}
+                                </div>
+                            {% endif %}
+                            {% if form.background_color.help_text %}
+                                <small class="form-text text-muted">{{ form.background_color.help_text }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.image_url.label_tag }}
+                            {{ form.image_url }}
+                            {% if form.image_url.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.image_url.errors }}
+                                </div>
+                            {% endif %}
+                            {% if form.image_url.help_text %}
+                                <small class="form-text text-muted">{{ form.image_url.help_text }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.music_url.label_tag }}
+                            {{ form.music_url }}
+                            {% if form.music_url.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.music_url.errors }}
+                                </div>
+                            {% endif %}
+                            {% if form.music_url.help_text %}
+                                <small class="form-text text-muted">{{ form.music_url.help_text }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            {{ form.is_public }}
+                            {{ form.is_public.label_tag }}
+                            {% if form.is_public.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.is_public.errors }}
+                                </div>
+                            {% endif %}
+                            {% if form.is_public.help_text %}
+                                <small class="form-text text-muted">{{ form.is_public.help_text }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="buttons mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}
+                                    {% trans "Update Scene Setting" %}
+                                {% else %}
+                                    {% trans "Create Scene Setting" %}
+                                {% endif %}
+                            </button>
+                            <a href="{% url 'messages:scene_setting_list' %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h5 m-0">{% trans "Preview" %}</h3>
+                </div>
+                <div class="card-body">
+                    <div id="scene-preview" class="scene-preview">
+                        <div class="scene-overlay">
+                            <h3 id="preview-title" class="h5 mb-2">{% trans "Scene Title" %}</h3>
+                            <div id="preview-description">{% trans "Scene description will appear here as you type." %}</div>
+                            <div id="preview-music" class="mt-2 d-none">
+                                <i class="fas fa-music"></i> {% trans "Background music available" %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {% trans "This preview shows how your scene setting will look when applied to a chat room." %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/spectrum-colorpicker2/dist/spectrum.min.js"></script>
+<script>
+    $(function() {
+        // Initialize color picker
+        $(".color-picker").spectrum({
+            preferredFormat: "hex",
+            showInput: true,
+            showPalette: true,
+            palette: [
+                ["#000","#444","#666","#999","#ccc","#eee","#f3f3f3","#fff"],
+                ["#f00","#f90","#ff0","#0f0","#0ff","#00f","#90f","#f0f"],
+                ["#204829","#22333B","#0A0908","#0B3948","#352D39","#121420","#000C15","#0D0A0B"],
+                ["#3E5641","#2E86AB","#25291C","#8B786D","#6369D1","#6E44FF","#5C6D70","#5B2333"]
+            ],
+            change: updatePreview
+        });
+
+        // Live preview updates
+        function updatePreview() {
+            var title = $("#id_title").val() || "{% trans 'Scene Title' %}";
+            var description = $("#id_description").val() || "{% trans 'Scene description will appear here as you type.' %}";
+            var bgColor = $("#id_background_color").val() || "#333";
+            var imgUrl = $("#id_image_url").val();
+            var musicUrl = $("#id_music_url").val();
+
+            $("#preview-title").text(title);
+            $("#preview-description").text(description);
+
+            var $preview = $("#scene-preview");
+            $preview.css("background-color", bgColor);
+
+            if (imgUrl) {
+                $preview.css("background-image", "url('" + imgUrl + "')");
+            } else {
+                $preview.css("background-image", "none");
+            }
+
+            if (musicUrl) {
+                $("#preview-music").removeClass("d-none");
+            } else {
+                $("#preview-music").addClass("d-none");
+            }
+        }
+
+        // Bind events
+        $("#id_title, #id_description, #id_background_color, #id_image_url, #id_music_url").on("input", updatePreview);
+
+        // Initial preview
+        updatePreview();
+    });
+</script>
+{% endblock %}

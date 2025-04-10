@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Characters{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>My Characters</h1>
+        <a href="{% url 'characters:character_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i> Create New Character
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Character Grid -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for character in characters %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-img-top character-image" style="height: 200px; background-color: #f5f5f5; display: flex; align-items: center; justify-content: center;">
+                        {% if character.primary_image %}
+                            <img src="{{ character.primary_image.image.url }}" alt="{{ character.name }}" class="img-fluid" style="max-height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="text-center text-muted">
+                                <i class="fas fa-user fa-3x"></i>
+                                <p class="mt-2">No Image</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ character.name }}</h5>
+                        <p class="card-text">
+                            <span class="badge bg-primary">{{ character.get_gender_display }}</span>
+                            {% if character.species %}
+                                <span class="badge bg-secondary">{{ character.species }}</span>
+                            {% endif %}
+
+                            {% if character.public %}
+                                <span class="badge bg-success">Public</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Private</span>
+                            {% endif %}
+                        </p>
+                        {% if character.short_description %}
+                            <p class="card-text small">{{ character.short_description|truncatechars:100 }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Updated {{ character.updated_at|date }}</small>
+                            <div class="btn-group">
+                                <a href="{% url 'characters:character_detail' character.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                <a href="{% url 'characters:character_update' character.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ character.id }}">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Modal -->
+            <div class="modal fade" id="deleteModal{{ character.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ character.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteModalLabel{{ character.id }}">Confirm Deletion</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Are you sure you want to delete <strong>{{ character.name }}</strong>? This action cannot be undone.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <form action="{% url 'characters:character_delete' character.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <h4 class="alert-heading">No Characters Yet</h4>
+                    <p>You haven't created any characters yet. Start by creating your first character!</p>
+                    <hr>
+                    <a href="{% url 'characters:character_create' %}" class="btn btn-primary">Create a Character</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

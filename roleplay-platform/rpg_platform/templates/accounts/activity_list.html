@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Activity Feed" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+  .activity-feed-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+
+  .activity-feed-header {
+    margin-bottom: 2rem;
+  }
+
+  .activity-card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-left: 4px solid #007bff;
+  }
+
+  .activity-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .activity-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    object-fit: cover;
+  }
+
+  .activity-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    background-color: #e9ecef;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    color: #6c757d;
+  }
+
+  .activity-user {
+    font-weight: 600;
+  }
+
+  .activity-time {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-left: auto;
+  }
+
+  .activity-content {
+    margin-left: 3.5rem;
+  }
+
+  .activity-icon {
+    margin-right: 0.5rem;
+  }
+
+  .activity-card.character_create {
+    border-left-color: #28a745;
+  }
+
+  .activity-card.character_update {
+    border-left-color: #17a2b8;
+  }
+
+  .activity-card.character_delete {
+    border-left-color: #dc3545;
+  }
+
+  .activity-card.comment {
+    border-left-color: #fd7e14;
+  }
+
+  .activity-card.rating {
+    border-left-color: #ffc107;
+  }
+
+  .activity-card.friendship {
+    border-left-color: #6f42c1;
+  }
+
+  .activity-card.message {
+    border-left-color: #e83e8c;
+  }
+
+  .activity-card.login {
+    border-left-color: #20c997;
+  }
+
+  .filter-form {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .filter-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .activity-time {
+      display: block;
+      margin-left: 0;
+      margin-top: 0.5rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize date pickers
+    flatpickr("#date-from", {
+      dateFormat: "Y-m-d",
+      altInput: true,
+      altFormat: "F j, Y",
+      allowInput: true
+    });
+
+    flatpickr("#date-to", {
+      dateFormat: "Y-m-d",
+      altInput: true,
+      altFormat: "F j, Y",
+      allowInput: true
+    });
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="activity-feed-container">
+  <div class="activity-feed-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1>{% trans "Activity Feed" %}</h1>
+      <a href="{% url 'dashboard:home' %}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left"></i> {% trans "Back to Dashboard" %}
+      </a>
+    </div>
+    <p class="text-muted">{% trans "View and filter all activities from you and your friends." %}</p>
+  </div>
+
+  <!-- Filter Form -->
+  <div class="filter-form">
+    <form method="get" action="{% url 'accounts:activity_list' %}">
+      <div class="row mb-3">
+        <div class="col-md-6 mb-3 mb-md-0">
+          <label for="filter-scope" class="form-label">{% trans "Show activities from" %}</label>
+          <select name="filter" id="filter-scope" class="form-select">
+            <option value="all" {% if activity_filter == 'all' %}selected{% endif %}>{% trans "Me & Friends" %}</option>
+            <option value="me" {% if activity_filter == 'me' %}selected{% endif %}>{% trans "Only Me" %}</option>
+            <option value="friends" {% if activity_filter == 'friends' %}selected{% endif %}>{% trans "Only Friends" %}</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label for="filter-type" class="form-label">{% trans "Activity Type" %}</label>
+          <select name="type" id="filter-type" class="form-select">
+            <option value="">{% trans "All Types" %}</option>
+            {% for value, label in activity_types.items %}
+              <option value="{{ value }}" {% if activity_type == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6 mb-3 mb-md-0">
+          <label for="date-from" class="form-label">{% trans "From Date" %}</label>
+          <input type="text" name="from" id="date-from" class="form-control" value="{{ date_from|default:'' }}">
+        </div>
+        <div class="col-md-6">
+          <label for="date-to" class="form-label">{% trans "To Date" %}</label>
+          <input type="text" name="to" id="date-to" class="form-control" value="{{ date_to|default:'' }}">
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3 mb-md-0">
+          <label for="user-filter" class="form-label">{% trans "Username" %}</label>
+          <input type="text" name="user" id="user-filter" class="form-control" value="{{ username_filter|default:'' }}" placeholder="{% trans 'Filter by username' %}">
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+          <div class="filter-actions w-100">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+            </button>
+            <a href="{% url 'accounts:activity_list' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-times"></i> {% trans "Clear Filters" %}
+            </a>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Activity Feed -->
+  <div class="activity-feed">
+    {% if activities %}
+      {% for activity in activities %}
+        {% with activity_type=activity.activity_type %}
+          <div class="activity-card {{ activity_type }}">
+            <div class="activity-header">
+              {% if activity.user.profile.avatar %}
+                <img src="{{ activity.user.profile.get_avatar_url }}" alt="{{ activity.user.username }}" class="activity-avatar">
+              {% else %}
+                <div class="activity-avatar-placeholder">
+                  {{ activity.user.username|slice:":1" }}
+                </div>
+              {% endif %}
+
+              <div class="activity-user">
+                {{ activity.user.profile.get_display_name }}
+              </div>
+
+              <div class="activity-time">
+                {{ activity.created_at|date:"F j, Y, g:i a" }} ({{ activity.created_at|timesince }} {% trans "ago" %})
+              </div>
+            </div>
+
+            <div class="activity-content">
+              {% if activity_type == 'character_create' %}
+                <span class="activity-icon text-success">
+                  <i class="fas fa-plus-circle"></i>
+                </span>
+                {% blocktrans with name=activity.extra_data.character_name %}Created a new character "{{ name }}"{% endblocktrans %}
+                <a href="{% url 'characters:character_detail' activity.object_id %}" class="btn btn-sm btn-outline-primary ms-2">
+                  <i class="fas fa-eye"></i> {% trans "View" %}
+                </a>
+
+              {% elif activity_type == 'character_update' %}
+                <span class="activity-icon text-info">
+                  <i class="fas fa-edit"></i>
+                </span>
+                {% blocktrans with name=activity.extra_data.character_name %}Updated character "{{ name }}"{% endblocktrans %}
+                <a href="{% url 'characters:character_detail' activity.object_id %}" class="btn btn-sm btn-outline-primary ms-2">
+                  <i class="fas fa-eye"></i> {% trans "View" %}
+                </a>
+
+              {% elif activity_type == 'character_delete' %}
+                <span class="activity-icon text-danger">
+                  <i class="fas fa-trash-alt"></i>
+                </span>
+                {% blocktrans with name=activity.extra_data.character_name %}Deleted character "{{ name }}"{% endblocktrans %}
+
+              {% elif activity_type == 'comment' %}
+                <span class="activity-icon text-warning">
+                  <i class="fas fa-comment"></i>
+                </span>
+                {% blocktrans with name=activity.extra_data.character_name owner=activity.extra_data.character_owner %}Commented on {{ owner }}'s character "{{ name }}"{% endblocktrans %}
+                {% if activity.extra_data.comment_snippet %}
+                  <div class="mt-2 text-muted font-italic">
+                    "{{ activity.extra_data.comment_snippet }}"
+                  </div>
+                {% endif %}
+                <a href="{% url 'characters:character_detail' activity.object_id %}" class="btn btn-sm btn-outline-primary ms-2 mt-2">
+                  <i class="fas fa-eye"></i> {% trans "View" %}
+                </a>
+
+              {% elif activity_type == 'rating' %}
+                <span class="activity-icon text-warning">
+                  <i class="fas fa-star"></i>
+                </span>
+                {% blocktrans with name=activity.extra_data.character_name owner=activity.extra_data.character_owner rating=activity.extra_data.rating %}Rated {{ owner }}'s character "{{ name }}" with {{ rating }} stars{% endblocktrans %}
+                <a href="{% url 'characters:character_detail' activity.object_id %}" class="btn btn-sm btn-outline-primary ms-2">
+                  <i class="fas fa-eye"></i> {% trans "View" %}
+                </a>
+
+              {% elif activity_type == 'friendship' %}
+                <span class="activity-icon text-purple">
+                  <i class="fas fa-user-friends"></i>
+                </span>
+                {% blocktrans with name=activity.extra_data.friend_username %}Became friends with {{ name }}{% endblocktrans %}
+
+              {% elif activity_type == 'message' %}
+                <span class="activity-icon text-pink">
+                  <i class="fas fa-comments"></i>
+                </span>
+                {% if activity.extra_data.participants|length > 1 %}
+                  {% blocktrans with participants=activity.extra_data.participants|join:", " %}Started a group chat with {{ participants }}{% endblocktrans %}
+                {% else %}
+                  {% blocktrans with participant=activity.extra_data.participants.0 %}Started a chat with {{ participant }}{% endblocktrans %}
+                {% endif %}
+                <a href="{% url 'messages:room_detail' activity.object_id %}" class="btn btn-sm btn-outline-primary ms-2">
+                  <i class="fas fa-comments"></i> {% trans "Open Chat" %}
+                </a>
+
+              {% elif activity_type == 'login' %}
+                <span class="activity-icon text-success">
+                  <i class="fas fa-sign-in-alt"></i>
+                </span>
+                {% trans "Logged in to the platform" %}
+
+              {% endif %}
+            </div>
+          </div>
+        {% endwith %}
+      {% endfor %}
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+        <nav aria-label="Activity feed pagination" class="mt-4">
+          <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}" aria-label="First">
+                  <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="First">
+                  <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+              </li>
+              <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+            {% endif %}
+
+            {% for i in paginator.page_range %}
+              {% if page_obj.number == i %}
+                <li class="page-item active">
+                  <a class="page-link" href="#">{{ i }}</a>
+                </li>
+              {% elif i > page_obj.number|add:"-3" and i < page_obj.number|add:"3" %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ i }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">{{ i }}</a>
+                </li>
+              {% elif i == 1 or i == paginator.num_pages %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ i }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">{{ i }}</a>
+                </li>
+              {% elif i == page_obj.number|add:"-3" or i == page_obj.number|add:"3" %}
+                <li class="page-item disabled">
+                  <a class="page-link" href="#">...</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ paginator.num_pages }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}" aria-label="Last">
+                  <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+              <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Last">
+                  <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+      {% endif %}
+    {% else %}
+      <div class="alert alert-info">
+        {% trans "No activities found matching your filters. Try adjusting your search criteria." %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

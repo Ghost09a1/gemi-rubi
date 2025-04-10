@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load moderation_tags %}
+
+{% block title %}{% trans "Moderation Logs" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .log-filters {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .log-item {
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .log-item:last-child {
+    border-bottom: none;
+  }
+
+  .log-meta {
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+
+  .log-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-0">{% trans "Moderation Logs" %}</h1>
+      <p class="text-muted">{% trans "Track all moderation activities on the platform" %}</p>
+    </div>
+    <div>
+      <a href="{% url 'moderation:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> {% trans "Back to Dashboard" %}
+      </a>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="log-filters">
+    <form method="get" class="row">
+      <div class="col-md-4 mb-3">
+        <label class="form-label">{% trans "Moderator" %}</label>
+        <select name="actor" class="form-select">
+          <option value="">{% trans "All Moderators" %}</option>
+          {% for moderator in moderators %}
+            <option value="{{ moderator.id }}" {% if request.GET.actor == moderator.id|stringformat:"i" %}selected{% endif %}>
+              {{ moderator.username }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <label class="form-label">{% trans "Date Range" %}</label>
+        <select name="period" class="form-select">
+          <option value="" {% if not request.GET.period %}selected{% endif %}>{% trans "All Time" %}</option>
+          <option value="today" {% if request.GET.period == 'today' %}selected{% endif %}>{% trans "Today" %}</option>
+          <option value="week" {% if request.GET.period == 'week' %}selected{% endif %}>{% trans "This Week" %}</option>
+          <option value="month" {% if request.GET.period == 'month' %}selected{% endif %}>{% trans "This Month" %}</option>
+        </select>
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <label class="form-label">{% trans "Search Term" %}</label>
+        <div class="input-group">
+          <input type="text" name="search" class="form-control" placeholder="{% trans 'Search logs' %}" value="{{ request.GET.search|default:'' }}">
+          <button class="btn btn-primary" type="submit">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Logs List -->
+  <div class="card">
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{% trans "Activity Logs" %}</h5>
+        <span class="badge bg-primary">{{ paginator.count }} {% trans "entries" %}</span>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      {% if object_list %}
+        <div class="list-group list-group-flush">
+          {% for log in object_list %}
+            <div class="log-item">
+              <div class="d-flex">
+                <div class="log-icon bg-light">
+                  <i class="fas fa-history text-secondary"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div>{{ log.action }}</div>
+                  <div class="log-meta">
+                    {% if log.actor %}
+                      {% trans "By" %} <strong>{{ log.actor.username }}</strong> •
+                    {% else %}
+                      {% trans "System" %} •
+                    {% endif %}
+                    {{ log.created_at|date:"M j, Y" }} {% trans "at" %} {{ log.created_at|time:"H:i" }}
+                    {% if log.ip_address %}
+                      • IP: {{ log.ip_address }}
+                    {% endif %}
+                  </div>
+                  {% if log.content_object %}
+                    <div class="mt-2">
+                      <span class="badge bg-light text-dark">
+                        {% if log.content_type.model == 'report' %}
+                          <a href="{% url 'moderation:report_detail' log.object_id %}">
+                            {% trans "Report" %} #{{ log.object_id }}
+                          </a>
+                        {% else %}
+                          {{ log.content_type.model|title }} #{{ log.object_id }}
+                        {% endif %}
+                      </span>
+                    </div>
+                  {% endif %}
+
+                  {% if log.additional_data %}
+                    <div class="mt-2 small">
+                      <pre class="mb-0">{{ log.additional_data|pprint }}</pre>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+          <nav aria-label="{% trans 'Log navigation' %}" class="p-3">
+            <ul class="pagination justify-content-center mb-0">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?{% url_replace page=1 %}" aria-label="{% trans 'First' %}">
+                    <i class="fas fa-angle-double-left"></i>
+                  </a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?{% url_replace page=page_obj.previous_page_number %}" aria-label="{% trans 'Previous' %}">
+                    <i class="fas fa-angle-left"></i>
+                  </a>
+                </li>
+              {% else %}
+                <li class="page-item disabled">
+                  <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                </li>
+                <li class="page-item disabled">
+                  <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                </li>
+              {% endif %}
+
+              {% for i in paginator.page_range %}
+                {% if page_obj.number == i %}
+                  <li class="page-item active">
+                    <span class="page-link">{{ i }}</span>
+                  </li>
+                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                  <li class="page-item">
+                    <a class="page-link" href="?{% url_replace page=i %}">{{ i }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?{% url_replace page=page_obj.next_page_number %}" aria-label="{% trans 'Next' %}">
+                    <i class="fas fa-angle-right"></i>
+                  </a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?{% url_replace page=paginator.num_pages %}" aria-label="{% trans 'Last' %}">
+                    <i class="fas fa-angle-double-right"></i>
+                  </a>
+                </li>
+              {% else %}
+                <li class="page-item disabled">
+                  <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                </li>
+                <li class="page-item disabled">
+                  <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+        {% endif %}
+      {% else %}
+        <div class="text-center py-5">
+          <i class="fas fa-history fa-3x text-muted mb-3"></i>
+          <h4>{% trans "No moderation logs found" %}</h4>
+          <p class="text-muted">{% trans "No logs match your current filters or there are no logs yet." %}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "landing/base_landing.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Terms of Service | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="terms-container my-4">
+        <h1 class="display-6 fw-bold mb-4 text-center">Terms of Service</h1>
+        <p class="text-muted text-center mb-5">Last updated: {% now "F j, Y" %}</p>
+
+        <div class="alert alert-info mb-4">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class="fas fa-info-circle fa-2x"></i>
+                </div>
+                <div>
+                    <h5 class="alert-heading">Important Notice</h5>
+                    <p class="mb-0">By using RoleplayHub, you agree to these Terms of Service. Please read them carefully. These terms include age restrictions and content guidelines that all users must follow.</p>
+                </div>
+            </div>
+        </div>
+
+        <h2>1. Introduction</h2>
+        <p>Welcome to RoleplayHub ("we," "our," or "us"). By accessing or using our platform, you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, please do not access or use our platform.</p>
+
+        <h2>2. Eligibility</h2>
+        <p>You must be at least 18 years old to use RoleplayHub. By using our platform, you represent and warrant that you are at least 18 years old and have the legal capacity to enter into these Terms.</p>
+
+        <h2>3. Account Registration</h2>
+        <p>To access certain features of the platform, you may be required to register for an account. You agree to provide accurate, current, and complete information during the registration process and to update such information to keep it accurate, current, and complete.</p>
+
+        <p>You are responsible for safeguarding your password and for all activities that occur under your account. You agree to notify us immediately of any unauthorized access to or use of your account.</p>
+
+        <h2>4. User Content and Conduct</h2>
+        <p>Our platform allows users to create, post, and share content ("User Content"). You retain ownership of your User Content, but you grant us a non-exclusive, royalty-free, worldwide, perpetual, and irrevocable license to use, copy, modify, distribute, and display your User Content for the purpose of operating and improving our platform.</p>
+
+        <h3>4.1 Prohibited Content</h3>
+        <p>You agree not to post, upload, or share User Content that:</p>
+        <ul>
+            <li>Is illegal or promotes illegal activities</li>
+            <li>Infringes on the intellectual property rights of others</li>
+            <li>Contains child sexual abuse material or promotes harm to minors</li>
+            <li>Depicts non-consensual sexual acts or promotes sexual violence</li>
+            <li>Contains hate speech, harassment, or threats</li>
+            <li>Violates the privacy or publicity rights of others</li>
+            <li>Contains malicious code or attempts to interfere with the platform's functionality</li>
+        </ul>
+
+        <h3>4.2 Consent System</h3>
+        <p>Our platform includes a consent system designed to establish boundaries and facilitate safe interactions. You agree to:</p>
+        <ul>
+            <li>Honestly represent your boundaries and respect the boundaries of others</li>
+            <li>Not pressure others to engage in content they have indicated is outside their boundaries</li>
+            <li>Use the consent system in good faith for its intended purpose</li>
+        </ul>
+
+        <h2>5. Privacy</h2>
+        <p>Our <a href="{% url 'landing:privacy' %}">Privacy Policy</a> describes how we collect, use, and share your personal information. By using our platform, you agree to our collection, use, and sharing of your information as described in our Privacy Policy.</p>
+
+        <h2>6. Intellectual Property Rights</h2>
+        <p>The platform and its content, features, and functionality (including but not limited to all information, software, text, displays, images, video, and audio, and the design, selection, and arrangement thereof) are owned by us, our licensors, or other providers and are protected by copyright, trademark, patent, trade secret, and other intellectual property or proprietary rights laws.</p>
+
+        <h2>7. Termination</h2>
+        <p>We reserve the right to terminate or suspend your account and access to the platform at our sole discretion, without notice, for conduct that we believe violates these Terms or is harmful to other users, us, or third parties, or for any other reason.</p>
+
+        <h2>8. Disclaimer of Warranties</h2>
+        <p>THE PLATFORM IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. TO THE FULLEST EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.</p>
+
+        <h2>9. Limitation of Liability</h2>
+        <p>TO THE FULLEST EXTENT PERMITTED BY LAW, IN NO EVENT WILL WE BE LIABLE FOR ANY INDIRECT, SPECIAL, INCIDENTAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING OUT OF OR RELATING TO YOUR USE OF THE PLATFORM.</p>
+
+        <h2>10. Governing Law</h2>
+        <p>These Terms shall be governed by and construed in accordance with the laws of [Jurisdiction], without regard to its conflict of law provisions.</p>
+
+        <h2>11. Changes to These Terms</h2>
+        <p>We reserve the right to modify these Terms at any time. If we make changes, we will provide notice by posting the updated Terms on the platform and updating the "Last updated" date. Your continued use of the platform after any such changes constitutes your acceptance of the new Terms.</p>
+
+        <h2>12. Contact Us</h2>
+        <p>If you have any questions about these Terms, please contact us at:</p>
+        <p>Email: support@roleplayhub.com</p>
+        <p>Address: 123 Roleplay Street, Creative City, 12345</p>
+
+        <div class="text-center mt-5">
+            <a href="{% url 'landing:home' %}#signup-section" class="btn btn-primary">I Accept & Want to Sign Up</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

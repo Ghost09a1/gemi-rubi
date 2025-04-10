@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        {% trans "Edit Note" %} | {{ block.super }}
+    {% else %}
+        {% trans "New Note" %} | {{ block.super }}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col">
+            {% if room %}
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'messages:room_detail' room.pk %}">{{ room.name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'messages:private_note_list_room' room.pk %}">{% trans "Private Notes" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            {% if form.instance.pk %}
+                                {% trans "Edit Note" %}
+                            {% else %}
+                                {% trans "New Note" %}
+                            {% endif %}
+                        </li>
+                    </ol>
+                </nav>
+            {% elif form.instance.chat_room %}
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'messages:room_detail' form.instance.chat_room.pk %}">{{ form.instance.chat_room.name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'messages:private_note_list_room' form.instance.chat_room.pk %}">{% trans "Private Notes" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{% trans "Edit Note" %}</li>
+                    </ol>
+                </nav>
+            {% else %}
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'messages:private_note_list' %}">{% trans "Private Notes" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            {% if form.instance.pk %}
+                                {% trans "Edit Note" %}
+                            {% else %}
+                                {% trans "New Note" %}
+                            {% endif %}
+                        </li>
+                    </ol>
+                </nav>
+            {% endif %}
+
+            {% if form.instance.pk %}
+                <h1 class="h2">{% trans "Edit Note" %}</h1>
+            {% else %}
+                <h1 class="h2">{% trans "New Note" %}</h1>
+                <p class="text-muted">
+                    {% trans "Create a private note that only you can see." %}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            {{ form.title.label_tag }}
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.title.errors }}
+                                </div>
+                            {% endif %}
+                            {% if form.title.help_text %}
+                                <small class="form-text text-muted">{{ form.title.help_text }}</small>
+                            {% endif %}
+                        </div>
+
+                        {% if not room %}
+                            <div class="mb-3">
+                                {{ form.chat_room.label_tag }}
+                                {{ form.chat_room }}
+                                {% if form.chat_room.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.chat_room.errors }}
+                                    </div>
+                                {% endif %}
+                                {% if form.chat_room.help_text %}
+                                    <small class="form-text text-muted">{{ form.chat_room.help_text }}</small>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    {% trans "If left empty, this will be a general note not associated with any specific chat room." %}
+                                </small>
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            {{ form.content.label_tag }}
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.content.errors }}
+                                </div>
+                            {% endif %}
+                            {% if form.content.help_text %}
+                                <small class="form-text text-muted">{{ form.content.help_text }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="buttons mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}
+                                    {% trans "Update Note" %}
+                                {% else %}
+                                    {% trans "Create Note" %}
+                                {% endif %}
+                            </button>
+
+                            {% if room %}
+                                <a href="{% url 'messages:private_note_list_room' room.pk %}" class="btn btn-outline-secondary">
+                                    {% trans "Cancel" %}
+                                </a>
+                            {% else %}
+                                <a href="{% url 'messages:private_note_list' %}" class="btn btn-outline-secondary">
+                                    {% trans "Cancel" %}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h5 m-0">{% trans "Tips for Private Notes" %}</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li class="mb-2">{% trans "Private notes are only visible to you." %}</li>
+                        <li class="mb-2">{% trans "You can organize notes by associating them with specific chat rooms." %}</li>
+                        <li class="mb-2">{% trans "Use notes to remember character details, plot points, or important information about your roleplay." %}</li>
+                        <li>{% trans "You can format text using line breaks for better readability." %}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

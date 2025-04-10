@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "My Conversations" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .chat-list-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .chat-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .chat-room-card {
+    display: flex;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+    transition: transform 0.2s;
+    overflow: hidden;
+  }
+
+  .chat-room-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .chat-room-info {
+    flex: 1;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .chat-room-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+  }
+
+  .chat-room-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin: 0;
+  }
+
+  .chat-room-type {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    color: #495057;
+  }
+
+  .chat-room-participants {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .chat-room-last-message {
+    color: #495057;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chat-room-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #6c757d;
+    font-size: 0.85rem;
+  }
+
+  .chat-room-timestamp {
+    color: #6c757d;
+  }
+
+  .chat-room-badge {
+    background-color: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+  }
+
+  .empty-chats {
+    text-align: center;
+    padding: 3rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 2rem;
+  }
+
+  .empty-chats-icon {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="chat-list-container">
+    <div class="chat-list-header">
+      <h1>{% trans "My Conversations" %}</h1>
+      <a href="{% url 'messages:room_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> {% trans "New Conversation" %}
+      </a>
+    </div>
+
+    {% if rooms %}
+      <div class="chat-list">
+        {% for room in rooms %}
+          <a href="{% url 'messages:room_detail' room.pk %}" class="text-decoration-none">
+            <div class="chat-room-card">
+              <div class="chat-room-info">
+                <div>
+                  <div class="chat-room-header">
+                    <h3 class="chat-room-title">
+                      {% if room.name %}
+                        {{ room.name }}
+                      {% else %}
+                        {% for participant in room.participants.all %}
+                          {% if participant != request.user %}
+                            {{ participant.username }}{% if not forloop.last %}, {% endif %}
+                          {% endif %}
+                        {% endfor %}
+                      {% endif %}
+                    </h3>
+                    <span class="chat-room-type">{{ room.get_room_type_display }}</span>
+                  </div>
+
+                  <div class="chat-room-participants">
+                    {% if room.room_type == 'group' %}
+                      {{ room.participants.count }} {% trans "participants" %}
+                    {% endif %}
+                  </div>
+
+                  {% with last_message=room.get_last_message %}
+                    {% if last_message %}
+                      <div class="chat-room-last-message">
+                        {% if last_message.character %}
+                          <strong>{{ last_message.character.name }}:</strong>
+                        {% elif last_message.sender == request.user %}
+                          <strong>{% trans "You" %}:</strong>
+                        {% else %}
+                          <strong>{{ last_message.sender.username }}:</strong>
+                        {% endif %}
+                        {{ last_message.message|truncatechars:60 }}
+                      </div>
+                    {% endif %}
+                  {% endwith %}
+                </div>
+
+                <div class="chat-room-footer">
+                  <div class="chat-room-timestamp">
+                    {% if room.last_message_time %}
+                      {{ room.last_message_time|timesince }} {% trans "ago" %}
+                    {% else %}
+                      {{ room.created_at|timesince }} {% trans "ago" %}
+                    {% endif %}
+                  </div>
+
+                  {% if room.unread_count > 0 %}
+                    <div class="chat-room-badge">
+                      {{ room.unread_count }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-chats">
+        <div class="empty-chats-icon">
+          <i class="fas fa-comments"></i>
+        </div>
+        <h3>{% trans "No Conversations Yet" %}</h3>
+        <p>{% trans "Start a new conversation by clicking the button above." %}</p>
+        <a href="{% url 'messages:room_create' %}" class="btn btn-primary mt-3">
+          <i class="fas fa-plus"></i> {% trans "Start a Conversation" %}
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

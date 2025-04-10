@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "User Preferences" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .preferences-form-container {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .form-section {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-section h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .theme-preview {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .theme-option {
+    flex: 1;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .theme-option.active {
+    border-color: #0d6efd;
+  }
+
+  .theme-light {
+    background-color: #ffffff;
+    color: #212529;
+  }
+
+  .theme-dark {
+    background-color: #343a40;
+    color: #f8f9fa;
+  }
+
+  .theme-header {
+    padding: 0.75rem;
+    font-weight: bold;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .theme-light .theme-header {
+    background-color: #f8f9fa;
+  }
+
+  .theme-dark .theme-header {
+    background-color: #212529;
+    border-color: #495057;
+  }
+
+  .theme-content {
+    padding: 0.75rem;
+  }
+
+  .preference-item {
+    margin-bottom: 1.5rem;
+  }
+
+  .preference-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .preference-title {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
+
+  .preference-description {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="preferences-form-container">
+    <h1>{% trans "User Preferences" %}</h1>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- Interface Preferences -->
+      <div class="form-section">
+        <h3>{% trans "Interface Preferences" %}</h3>
+
+        <!-- Theme Preference -->
+        <div class="preference-item">
+          <div class="preference-title">{% trans "Theme" %}</div>
+          <div class="preference-description">{% trans "Choose how the site looks to you" %}</div>
+
+          <div class="theme-preview">
+            <div class="theme-option theme-light" id="theme-light">
+              <div class="theme-header">{% trans "Light Theme" %}</div>
+              <div class="theme-content">
+                <p>{% trans "Light background with dark text" %}</p>
+              </div>
+            </div>
+
+            <div class="theme-option theme-dark" id="theme-dark">
+              <div class="theme-header">{% trans "Dark Theme" %}</div>
+              <div class="theme-content">
+                <p>{% trans "Dark background with light text" %}</p>
+              </div>
+            </div>
+
+            <div class="theme-option" id="theme-auto">
+              <div class="theme-header">{% trans "System Default" %}</div>
+              <div class="theme-content">
+                <p>{% trans "Follows your device settings" %}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            {{ form.theme }}
+            {% if form.theme.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.theme.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Language Preference -->
+        <div class="preference-item">
+          <div class="preference-title">{% trans "Language" %}</div>
+          <div class="preference-description">{% trans "Select your preferred language" %}</div>
+
+          <div class="mb-3">
+            {{ form.language }}
+            {% if form.language.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.language.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Layout Preference -->
+        <div class="preference-item">
+          <div class="form-check">
+            {{ form.compact_layout }}
+            <label class="form-check-label" for="{{ form.compact_layout.id_for_label }}">
+              <div class="preference-title">{% trans "Use Compact Layout" %}</div>
+              <div class="preference-description">{% trans "Display more content with reduced spacing" %}</div>
+            </label>
+            {% if form.compact_layout.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.compact_layout.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- NSFW Content Preference -->
+        <div class="preference-item">
+          <div class="form-check">
+            {{ form.show_nsfw_content }}
+            <label class="form-check-label" for="{{ form.show_nsfw_content.id_for_label }}">
+              <div class="preference-title">{% trans "Show NSFW Content" %}</div>
+              <div class="preference-description">{% trans "Display adult-oriented content without blurring" %}</div>
+            </label>
+            {% if form.show_nsfw_content.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.show_nsfw_content.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <a href="{% url 'accounts:account_settings' %}" class="btn btn-secondary">
+          {% trans "Back to Settings" %}
+        </a>
+        <button type="submit" class="btn btn-primary">
+          {% trans "Save Preferences" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const themeSelect = document.getElementById('{{ form.theme.id_for_label }}');
+    const themeOptions = {
+      light: document.getElementById('theme-light'),
+      dark: document.getElementById('theme-dark'),
+      auto: document.getElementById('theme-auto')
+    };
+
+    // Set initial state
+    updateActiveTheme();
+
+    // Update active theme when select changes
+    themeSelect.addEventListener('change', updateActiveTheme);
+
+    // Handle click on theme options
+    for (const [theme, element] of Object.entries(themeOptions)) {
+      if (element) {
+        element.addEventListener('click', function() {
+          themeSelect.value = theme;
+          updateActiveTheme();
+        });
+      }
+    }
+
+    function updateActiveTheme() {
+      const currentTheme = themeSelect.value;
+
+      // Remove active class from all options
+      for (const element of Object.values(themeOptions)) {
+        if (element) {
+          element.classList.remove('active');
+        }
+      }
+
+      // Add active class to selected option
+      if (themeOptions[currentTheme]) {
+        themeOptions[currentTheme].classList.add('active');
+      }
+    }
+  });
+</script>
+{% endblock %}

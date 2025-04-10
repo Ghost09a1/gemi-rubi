@@ -1,0 +1,963 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load bbcode %}
+
+{% block title %}{{ character.name }} - {% trans "Character Profile" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Character profile specific styling */
+  .character-profile {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+  }
+
+  .character-sidebar {
+    width: 280px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .character-content {
+    flex: 1;
+  }
+
+  .character-image-container {
+    margin-bottom: 15px;
+    text-align: center;
+  }
+
+  .character-image {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 4px;
+  }
+
+  .character-basic-info {
+    margin-bottom: 20px;
+  }
+
+  .character-basic-info h3 {
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+  }
+
+  .character-info-item {
+    margin-bottom: 8px;
+  }
+
+  .character-info-label {
+    font-weight: bold;
+  }
+
+  .nav-tabs {
+    margin-bottom: 20px;
+  }
+
+  .description-container {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+
+  .kinks-container {
+    margin-top: 30px;
+  }
+
+  .kinks-category {
+    margin-bottom: 20px;
+  }
+
+  .kinks-category h4 {
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+  }
+
+  .kinks-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  @media (max-width: 992px) {
+    .kinks-list {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .character-profile {
+      flex-direction: column;
+    }
+
+    .character-sidebar {
+      width: 100%;
+    }
+
+    .kinks-list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 576px) {
+    .kinks-list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .kink-item {
+    padding: 8px;
+    border-radius: 4px;
+  }
+
+  .kink-name {
+    font-weight: bold;
+  }
+
+  .kink-rating {
+    display: inline-block;
+    padding: 2px 5px;
+    border-radius: 3px;
+    margin-left: 5px;
+    font-size: 0.8rem;
+  }
+
+  .kink-rating-fave {
+    background-color: #d1ecf1;
+    color: #0c5460;
+  }
+
+  .kink-rating-yes {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  .kink-rating-maybe {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+
+  .kink-rating-no {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+
+  .description-toggle {
+    margin-bottom: 15px;
+  }
+
+  .gallery-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+  }
+
+  .gallery-item {
+    text-align: center;
+  }
+
+  .gallery-item img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+  }
+
+  .gallery-title {
+    margin-top: 5px;
+    font-weight: bold;
+  }
+
+  .gallery-image-wrapper {
+    position: relative;
+  }
+
+  .gallery-primary-badge {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background-color: #007bff;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+  }
+
+  /* BBCode styling */
+  .spoiler {
+    margin: 10px 0;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .spoiler-toggle {
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    font-weight: bold;
+    border-bottom: 1px solid transparent;
+  }
+
+  .spoiler-toggle.open {
+    border-bottom-color: #dee2e6;
+  }
+
+  .spoiler-toggle:hover {
+    background-color: #e9ecef;
+  }
+
+  .spoiler-content {
+    padding: 12px;
+  }
+
+  .bbcode-list {
+    margin-bottom: 1rem;
+  }
+
+  pre {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 1rem;
+    overflow: auto;
+  }
+
+  pre code {
+    display: block;
+    word-wrap: normal;
+    white-space: pre;
+  }
+
+  blockquote.blockquote {
+    border-left: 4px solid #dee2e6;
+    padding-left: 15px;
+    margin-left: 0;
+    color: #6c757d;
+  }
+
+  /* Reviews Tab Styling */
+  .rating-summary {
+    background-color: #f8f9fa;
+  }
+
+  .rating-average {
+    padding: 1rem;
+  }
+
+  .rating-stars {
+    font-size: 1.5rem;
+    color: #ffc107;
+  }
+
+  .star-rating-input .form-check-label {
+    cursor: pointer;
+  }
+
+  .comment-card, .reply-card {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+  }
+
+  .reply-card {
+    background-color: #f8f9fa;
+  }
+
+  .comment-user-avatar img, .reply-user-avatar img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+  }
+
+  .reply-user-avatar img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    background-color: #6c757d;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+  }
+
+  .comment {
+    margin-bottom: 1.5rem;
+  }
+
+  .comment-hidden {
+    opacity: 0.7;
+  }
+
+  .comment-header {
+    margin-bottom: 0.5rem;
+  }
+
+  .comment-author {
+    font-weight: 600;
+  }
+
+  .comment-meta {
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+
+  .comment-body {
+    line-height: 1.6;
+  }
+
+  .avatar-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  .ratings {
+    font-size: 1.5rem;
+    color: #f8c146;
+  }
+
+  .star-rating-form {
+    font-size: 2rem;
+  }
+
+  .star-rating-form .form-check-inline {
+    margin-right: 1rem;
+  }
+
+  .star-rating-form .form-check-input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .star-rating-form .form-check-label {
+    cursor: pointer;
+    color: #adb5bd;
+    transition: color 0.2s;
+  }
+
+  .star-rating-form .form-check-input:checked + .form-check-label,
+  .star-rating-form .form-check-label:hover {
+    color: #f8c146;
+  }
+
+  .star-rating-form .form-check-input:checked ~ .form-check-input + .form-check-label {
+    color: #adb5bd;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  {% if character.user == request.user %}
+  <div class="mb-4">
+    <a href="{% url 'characters:character_update' character.pk %}" class="btn btn-primary">
+      <i class="fas fa-edit"></i> {% trans "Edit Character" %}
+    </a>
+    <a href="{% url 'characters:character_kinks' character.pk %}" class="btn btn-info">
+      <i class="fas fa-list-alt"></i> {% trans "Manage Kinks" %}
+    </a>
+    <a href="{% url 'characters:image_list' character.pk %}" class="btn btn-success">
+      <i class="fas fa-images"></i> {% trans "Manage Images" %}
+    </a>
+    <a href="{% url 'characters:character_delete' character.pk %}" class="btn btn-danger">
+      <i class="fas fa-trash"></i> {% trans "Delete Character" %}
+    </a>
+  </div>
+  {% endif %}
+
+  <div class="character-profile">
+    <!-- Sidebar with basic info -->
+    <div class="character-sidebar">
+      <div class="character-image-container">
+        {% if images.exists %}
+          {% with primary_image=images.first %}
+          <img src="{{ primary_image.image.url }}" alt="{{ character.name }}" class="character-image">
+          {% if primary_image.title %}
+          <div class="mt-2">{{ primary_image.title }}</div>
+          {% endif %}
+          {% endwith %}
+        {% else %}
+          <img src="{% static 'characters/img/default-avatar.png' %}" alt="{{ character.name }}" class="character-image">
+        {% endif %}
+      </div>
+
+      <div class="character-basic-info">
+        <h3>{{ character.name }}</h3>
+
+        <div class="character-info-item">
+          <span class="character-info-label">{% trans "Gender:" %}</span>
+          <span>{{ character.get_gender_display }}</span>
+        </div>
+
+        <div class="character-info-item">
+          <span class="character-info-label">{% trans "Species:" %}</span>
+          <span>{{ character.species }}</span>
+        </div>
+
+        {% if character.height %}
+        <div class="character-info-item">
+          <span class="character-info-label">{% trans "Height:" %}</span>
+          <span>{{ character.height }}</span>
+        </div>
+        {% endif %}
+
+        {% if character.weight %}
+        <div class="character-info-item">
+          <span class="character-info-label">{% trans "Weight:" %}</span>
+          <span>{{ character.weight }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Main content area -->
+    <div class="character-content">
+      <ul class="nav nav-tabs" id="characterTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
+            {% trans "Overview" %}
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="false">
+            {% trans "Info" %}
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#gallery" type="button" role="tab" aria-controls="gallery" aria-selected="false">
+            {% trans "Gallery" %}
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="false">
+            {% trans "Ratings & Comments" %}
+            <span class="badge rounded-pill bg-secondary">{{ character.get_rating_count }}</span>
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="characterTabsContent">
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+          {% if character.use_css %}
+            <div class="description-container css-description">
+              {{ character.description_css|safe }}
+            </div>
+          {% else %}
+            <div class="description-container bbc-description">
+              {{ character.description_bbc|bbcode }}
+            </div>
+          {% endif %}
+
+          <!-- Kinks Section -->
+          <div class="kinks-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3>{% trans "Kinks & Preferences" %}</h3>
+              {% if character.user == request.user %}
+              <a href="{% url 'characters:character_kinks' character.pk %}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-edit"></i> {% trans "Manage" %}
+              </a>
+              {% endif %}
+            </div>
+
+            {% if kinks_by_category %}
+              <div class="kinks-filter mb-3">
+                <div class="form-group">
+                  <label for="kinks-search" class="form-label">{% trans "Search Kinks" %}</label>
+                  <input type="text" id="kinks-search" class="form-control" placeholder="{% trans 'Type to filter...' %}">
+                </div>
+              </div>
+
+              <div class="rating-legend d-flex flex-wrap gap-2 mb-3">
+                <span class="badge bg-info">{% trans "Favorite" %}</span>
+                <span class="badge bg-success">{% trans "Yes" %}</span>
+                <span class="badge bg-warning text-dark">{% trans "Maybe" %}</span>
+                <span class="badge bg-danger">{% trans "No" %}</span>
+              </div>
+
+              {% for category, kinks in kinks_by_category.items %}
+                <div class="kinks-category">
+                  <h4>{{ category }}</h4>
+                  <div class="kinks-list">
+                    {% for kink in kinks %}
+                      <div class="kink-item" data-kink-name="{{ kink.name|lower }}">
+                        <div class="kink-name">{{ kink.name }}</div>
+                        <div class="kink-rating kink-rating-{{ kink.rating }}">
+                          {% if kink.rating == 'fave' %}
+                            {% trans "Favorite" %}
+                          {% elif kink.rating == 'yes' %}
+                            {% trans "Yes" %}
+                          {% elif kink.rating == 'maybe' %}
+                            {% trans "Maybe" %}
+                          {% elif kink.rating == 'no' %}
+                            {% trans "No" %}
+                          {% endif %}
+                        </div>
+                        {% if kink.description %}
+                        <div class="kink-description text-muted small mt-1">
+                          {{ kink.description }}
+                        </div>
+                        {% endif %}
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% empty %}
+                <p>{% trans "No kinks or preferences have been set for this character." %}</p>
+              {% endfor %}
+            {% else %}
+              <p>{% trans "No kinks or preferences have been set for this character." %}</p>
+              {% if character.user == request.user %}
+              <a href="{% url 'characters:character_kinks' character.pk %}" class="btn btn-primary">
+                {% trans "Set Kink Preferences" %}
+              </a>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Info Tab -->
+        <div class="tab-pane fade" id="info" role="tabpanel" aria-labelledby="info-tab">
+          {% regroup info_fields by field.category as categorized_fields %}
+
+          {% for category in categorized_fields %}
+            <div class="mb-4">
+              <h4>{{ category.grouper.name }}</h4>
+              <div class="list-group">
+                {% for info in category.list %}
+                  <div class="list-group-item">
+                    <div class="fw-bold">{{ info.field.name }}</div>
+                    <div>{{ info.value|linebreaks }}</div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          {% empty %}
+            <p>{% trans "No additional information has been provided for this character." %}</p>
+          {% endfor %}
+        </div>
+
+        <!-- Gallery Tab -->
+        <div class="tab-pane fade" id="gallery" role="tabpanel" aria-labelledby="gallery-tab">
+          {% if images.exists %}
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3>{% trans "Character Gallery" %}</h3>
+              {% if character.user == request.user %}
+                <a href="{% url 'characters:image_list' character.pk %}" class="btn btn-sm btn-primary">
+                  <i class="fas fa-cog"></i> {% trans "Manage Images" %}
+                </a>
+              {% endif %}
+            </div>
+
+            <div class="gallery-container">
+              {% for image in images %}
+                <div class="gallery-item">
+                  <a href="{{ image.image.url }}" class="gallery-image-link" target="_blank" data-title="{{ image.title|default:'' }}">
+                    <div class="gallery-image-wrapper">
+                      <img src="{{ image.image.url }}" alt="{{ image.title|default:character.name }}">
+                      {% if image.is_primary %}
+                        <span class="gallery-primary-badge">{% trans "Primary" %}</span>
+                      {% endif %}
+                    </div>
+                  </a>
+                  {% if image.title %}
+                    <div class="gallery-title">{{ image.title }}</div>
+                  {% endif %}
+                  {% if image.description %}
+                    <div class="gallery-description">{{ image.description }}</div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-5">
+              <div class="mb-3">
+                <i class="fas fa-images fa-4x text-muted"></i>
+              </div>
+              <h4>{% trans "No images yet" %}</h4>
+              <p>{% trans "This character doesn't have any images in their gallery." %}</p>
+              {% if character.user == request.user %}
+                <a href="{% url 'characters:image_list' character.pk %}" class="btn btn-primary">
+                  <i class="fas fa-upload"></i> {% trans "Upload Images" %}
+                </a>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Ratings & Comments Tab -->
+        <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+          <div class="row">
+            <!-- Rating statistics -->
+            <div class="col-md-4 mb-4">
+              <div class="card h-100">
+                <div class="card-header">
+                  <h5 class="mb-0">{% trans "Ratings" %}</h5>
+                </div>
+                <div class="card-body">
+                  <div class="text-center mb-3">
+                    <div class="display-4 fw-bold">{{ character.get_average_rating }}</div>
+                    <div class="ratings">
+                      {% for i in "12345" %}
+                        {% if forloop.counter <= character.get_average_rating|floatformat:"0" %}
+                          <i class="fas fa-star text-warning"></i>
+                        {% elif forloop.counter <= character.get_average_rating|add:"0.5"|floatformat:"0" %}
+                          <i class="fas fa-star-half-alt text-warning"></i>
+                        {% else %}
+                          <i class="far fa-star text-warning"></i>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                    <div class="text-muted mt-1">
+                      {{ character.get_rating_count }} {% trans "ratings" %}
+                    </div>
+                  </div>
+
+                  {% if character.can_user_rate(request.user) %}
+                    {% if user_rating %}
+                      <div class="alert alert-info">
+                        {% trans "You rated this character" %} <strong>{{ user_rating.rating }} {% trans "stars" %}</strong>.
+                      </div>
+
+                      <div class="d-flex justify-content-between">
+                        <form method="post" action="{% url 'characters:delete_rating' character.pk %}">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash-alt"></i> {% trans "Delete Rating" %}
+                          </button>
+                        </form>
+
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#ratingModal">
+                          <i class="fas fa-edit"></i> {% trans "Change Rating" %}
+                        </button>
+                      </div>
+                    {% else %}
+                      <button type="button" class="btn btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#ratingModal">
+                        <i class="far fa-star"></i> {% trans "Rate This Character" %}
+                      </button>
+                    {% endif %}
+                  {% elif request.user.is_authenticated and character.user == request.user %}
+                    <div class="alert alert-info">
+                      {% trans "You cannot rate your own character." %}
+                    </div>
+                  {% elif not request.user.is_authenticated %}
+                    <div class="alert alert-info">
+                      {% trans "Log in to rate this character." %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Comments section -->
+            <div class="col-md-8">
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">{% trans "Comments" %}</h5>
+
+                  {% if character.can_user_comment(request.user) %}
+                    <a href="{% url 'characters:add_comment' character.pk %}" class="btn btn-sm btn-primary">
+                      <i class="fas fa-comment"></i> {% trans "Add Comment" %}
+                    </a>
+                  {% endif %}
+                </div>
+                <div class="card-body">
+                  {% if character.get_visible_comments(request.user) %}
+                    <div class="comment-list">
+                      {% for comment in character.get_visible_comments(request.user) %}
+                        <div class="comment {% if comment.is_hidden %}comment-hidden{% endif %}" id="comment-{{ comment.id }}">
+                          <div class="comment-header d-flex align-items-center mb-2">
+                            {% if comment.author.profile.avatar %}
+                              <img src="{{ comment.author.profile.get_avatar_url }}" alt="{{ comment.author.username }}" class="avatar avatar-sm me-2">
+                            {% else %}
+                              <div class="avatar avatar-sm me-2 bg-secondary text-white">
+                                {{ comment.author.username|slice:":1" }}
+                              </div>
+                            {% endif %}
+
+                            <div>
+                              <div class="comment-author">
+                                {{ comment.author.profile.get_display_name }}
+                                {% if comment.author == character.user %}
+                                  <span class="badge bg-primary">{% trans "Author" %}</span>
+                                {% endif %}
+                              </div>
+                              <div class="comment-meta">
+                                {{ comment.created_at|date:"F j, Y" }}
+                                {% if comment.is_edited %}
+                                  <span class="badge bg-secondary">{% trans "edited" %}</span>
+                                {% endif %}
+                              </div>
+                            </div>
+
+                            <div class="ms-auto">
+                              {% if comment.is_hidden %}
+                                <span class="badge bg-warning text-dark">{% trans "Hidden" %}</span>
+                              {% endif %}
+
+                              {% if comment.author == request.user or character.user == request.user %}
+                                <div class="dropdown">
+                                  <button class="btn btn-sm btn-link text-muted" type="button" id="comment-{{ comment.id }}-actions" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                  </button>
+                                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="comment-{{ comment.id }}-actions">
+                                    {% if comment.author == request.user %}
+                                      <li>
+                                        <a class="dropdown-item" href="{% url 'characters:edit_comment' character.pk comment.pk %}">
+                                          <i class="fas fa-edit"></i> {% trans "Edit" %}
+                                        </a>
+                                      </li>
+                                      <li>
+                                        <a class="dropdown-item" href="{% url 'characters:delete_comment' character.pk comment.pk %}">
+                                          <i class="fas fa-trash-alt"></i> {% trans "Delete" %}
+                                        </a>
+                                      </li>
+                                    {% endif %}
+
+                                    {% if character.user == request.user %}
+                                      <li>
+                                        <form method="post" action="{% url 'characters:toggle_comment_visibility' character.pk comment.pk %}">
+                                          {% csrf_token %}
+                                          <button type="submit" class="dropdown-item">
+                                            {% if comment.is_hidden %}
+                                              <i class="fas fa-eye"></i> {% trans "Show Comment" %}
+                                            {% else %}
+                                              <i class="fas fa-eye-slash"></i> {% trans "Hide Comment" %}
+                                            {% endif %}
+                                          </button>
+                                        </form>
+                                      </li>
+
+                                      {% if comment.author != request.user %}
+                                        <li>
+                                          <a class="dropdown-item" href="{% url 'characters:delete_comment' character.pk comment.pk %}">
+                                            <i class="fas fa-trash-alt"></i> {% trans "Remove" %}
+                                          </a>
+                                        </li>
+                                      {% endif %}
+                                    {% endif %}
+                                  </ul>
+                                </div>
+                              {% endif %}
+                            </div>
+                          </div>
+
+                          <div class="comment-body">
+                            {{ comment.content|linebreaks }}
+                          </div>
+                        </div>
+
+                        {% if not forloop.last %}
+                          <hr>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    <div class="text-center py-5">
+                      <div class="display-6 text-muted">
+                        <i class="far fa-comment"></i>
+                      </div>
+                      <p class="lead">{% trans "No comments yet" %}</p>
+                      {% if character.can_user_comment(request.user) %}
+                        <a href="{% url 'characters:add_comment' character.pk %}" class="btn btn-primary">
+                          <i class="fas fa-comment"></i> {% trans "Be the first to comment" %}
+                        </a>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rating Modal -->
+{% if character.can_user_rate(request.user) %}
+<div class="modal fade" id="ratingModal" tabindex="-1" aria-labelledby="ratingModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ratingModalLabel">{% trans "Rate This Character" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'characters:rate_character' character.pk %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <p>{% trans "How would you rate" %} <strong>{{ character.name }}</strong>?</p>
+
+          <div class="star-rating-form text-center">
+            {% for i in "12345" %}
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="rating" id="rating{{ forloop.counter }}" value="{{ forloop.counter }}"
+                  {% if user_rating and user_rating.rating == forloop.counter %}checked{% endif %}>
+                <label class="form-check-label" for="rating{{ forloop.counter }}">
+                  <i class="fas fa-star"></i><br>
+                  {{ forloop.counter }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="rating-labels d-flex justify-content-between mt-2">
+            <span class="text-muted">{% trans "Poor" %}</span>
+            <span class="text-muted">{% trans "Excellent" %}</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+          <button type="submit" class="btn btn-primary">{% trans "Submit Rating" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+
+    // Kinks search functionality
+    const kinksSearchInput = document.getElementById('kinks-search');
+    if (kinksSearchInput) {
+      kinksSearchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        const kinkItems = document.querySelectorAll('.kink-item');
+
+        kinkItems.forEach(item => {
+          const kinkName = item.getAttribute('data-kink-name');
+          const kinkDescription = item.querySelector('.kink-description')?.textContent.toLowerCase() || '';
+
+          if (kinkName.includes(searchTerm) || kinkDescription.includes(searchTerm)) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+
+        // Show/hide categories based on whether they have visible kinks
+        const categories = document.querySelectorAll('.kinks-category');
+        categories.forEach(category => {
+          const visibleKinks = category.querySelectorAll('.kink-item[style="display: none;"]');
+          if (visibleKinks.length === category.querySelectorAll('.kink-item').length) {
+            category.style.display = 'none';
+          } else {
+            category.style.display = '';
+          }
+        });
+      });
+    }
+
+    // Handle spoiler tags
+    document.querySelectorAll('.spoiler-toggle').forEach(function(toggle) {
+      toggle.addEventListener('click', function() {
+        const content = this.nextElementSibling;
+        if (content.style.display === 'none') {
+          content.style.display = 'block';
+          this.classList.add('open');
+        } else {
+          content.style.display = 'none';
+          this.classList.remove('open');
+        }
+      });
+    });
+
+    // Toggle reply forms
+    document.querySelectorAll('.toggle-reply-form').forEach(function(button) {
+      button.addEventListener('click', function() {
+        const commentId = this.dataset.commentId;
+        const replyForm = document.getElementById(`reply-form-${commentId}`);
+
+        // Hide any other open reply forms
+        document.querySelectorAll('.reply-form').forEach(function(form) {
+          if (form.id !== `reply-form-${commentId}`) {
+            form.style.display = 'none';
+          }
+        });
+
+        // Toggle this reply form
+        replyForm.style.display = replyForm.style.display === 'none' ? 'block' : 'none';
+      });
+    });
+
+    // Cancel reply button
+    document.querySelectorAll('.cancel-reply').forEach(function(button) {
+      button.addEventListener('click', function() {
+        const form = this.closest('.reply-form');
+        form.style.display = 'none';
+      });
+    });
+
+    // Star rating hover effect
+    const starLabels = document.querySelectorAll('.star-rating-form .form-check-label');
+
+    starLabels.forEach(function(label, index) {
+      label.addEventListener('mouseenter', function() {
+        // Highlight all stars up to this one
+        for (let i = 0; i <= index; i++) {
+          starLabels[i].style.color = '#f8c146';
+        }
+
+        // Dim all stars after this one
+        for (let i = index + 1; i < starLabels.length; i++) {
+          starLabels[i].style.color = '#adb5bd';
+        }
+      });
+    });
+
+    // Reset to checked state on mouseleave
+    document.querySelector('.star-rating-form').addEventListener('mouseleave', function() {
+      const checkedInput = document.querySelector('.star-rating-form .form-check-input:checked');
+
+      if (checkedInput) {
+        const checkedIndex = Array.from(document.querySelectorAll('.star-rating-form .form-check-input')).indexOf(checkedInput);
+
+        // Reset all to dim
+        starLabels.forEach(function(label) {
+          label.style.color = '#adb5bd';
+        });
+
+        // Highlight up to checked
+        for (let i = 0; i <= checkedIndex; i++) {
+          starLabels[i].style.color = '#f8c146';
+        }
+      } else {
+        // If none checked, reset all to dim
+        starLabels.forEach(function(label) {
+          label.style.color = '#adb5bd';
+        });
+      }
+    });
+  });
+</script>
+{% endblock %}

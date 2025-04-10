@@ -1,0 +1,49 @@
+# RoleplayHub Platform Dependencies
+
+# Core Framework
+Django>=4.2.0,<5.0.0
+daphne>=4.0.0
+
+# Channels for WebSocket support
+channels>=4.0.0
+channels-redis>=4.1.0
+
+# Form and UI Enhancement
+django-crispy-forms>=2.0
+crispy-bootstrap5>=0.7
+
+# Image Handling
+Pillow>=10.0.0
+
+# Authentication and Social Auth
+django-allauth>=0.54.0
+
+# Database (for production, uncomment as needed)
+# psycopg2-binary>=2.9.6  # PostgreSQL
+# mysqlclient>=2.1.1      # MySQL
+
+# REST Framework (if you implement an API)
+# djangorestframework>=3.14.0
+
+# Development Tools
+django-debug-toolbar>=4.2.0
+
+# Performance and Caching
+# django-redis>=5.3.0
+
+# Testing
+pytest>=7.3.1
+pytest-django>=4.5.2
+
+# Security
+django-axes>=6.0.0  # Login security
+
+# Deployment (for production, uncomment as needed)
+# gunicorn>=21.2.0
+# whitenoise>=6.5.0
+
+# CORS handling (if needed)
+# django-cors-headers>=4.1.0
+
+# Environment variables
+python-dotenv>=1.0.0

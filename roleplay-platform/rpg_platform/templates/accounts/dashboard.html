@@ -1,0 +1,725 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Dashboard" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+
+  .dashboard-header {
+    margin-bottom: 2rem;
+  }
+
+  .dashboard-stats {
+    margin-bottom: 2rem;
+  }
+
+  .stats-card {
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .stats-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #6c757d;
+  }
+
+  .stats-count {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .stats-label {
+    color: #6c757d;
+    font-weight: 500;
+  }
+
+  .activity-feed {
+    margin-bottom: 2rem;
+  }
+
+  .activity-card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-left: 4px solid #007bff;
+  }
+
+  .activity-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .activity-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    object-fit: cover;
+  }
+
+  .activity-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    background-color: #e9ecef;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    color: #6c757d;
+  }
+
+  .activity-user {
+    font-weight: 600;
+  }
+
+  .activity-time {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-left: auto;
+  }
+
+  .activity-content {
+    margin-left: 3.5rem;
+  }
+
+  .activity-icon {
+    margin-right: 0.5rem;
+  }
+
+  .activity-card.character-create {
+    border-left-color: #28a745;
+  }
+
+  .activity-card.character-update {
+    border-left-color: #17a2b8;
+  }
+
+  .activity-card.comment {
+    border-left-color: #fd7e14;
+  }
+
+  .activity-card.rating {
+    border-left-color: #ffc107;
+  }
+
+  .activity-card.friendship {
+    border-left-color: #6f42c1;
+  }
+
+  .activity-card.message {
+    border-left-color: #e83e8c;
+  }
+
+  .activity-card.login {
+    border-left-color: #20c997;
+  }
+
+  .character-card {
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 1rem;
+    height: 100%;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .character-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .character-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    background-color: #e9ecef;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #6c757d;
+    font-size: 1.5rem;
+  }
+
+  .character-body {
+    padding: 1rem;
+  }
+
+  .character-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .character-meta {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .request-card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 1rem;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .request-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    object-fit: cover;
+  }
+
+  .request-avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    background-color: #e9ecef;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    color: #6c757d;
+  }
+
+  .request-content {
+    flex: 1;
+  }
+
+  .request-user {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .request-actions {
+    margin-left: 1rem;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .dashboard-section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .load-more {
+    text-align: center;
+    margin-top: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <h1>{% trans "Dashboard" %}</h1>
+    <p class="text-muted">{% trans "Welcome back," %} {{ user.profile.get_display_name }}</p>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="dashboard-stats">
+    <div class="row">
+      <div class="col-md-3 mb-4">
+        <div class="stats-card">
+          <div class="stats-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stats-count">{{ activity_counts.friends }}</div>
+          <div class="stats-label">{% trans "Friends" %}</div>
+        </div>
+      </div>
+
+      <div class="col-md-3 mb-4">
+        <div class="stats-card">
+          <div class="stats-icon">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <div class="stats-count">{{ activity_counts.characters }}</div>
+          <div class="stats-label">{% trans "Characters" %}</div>
+        </div>
+      </div>
+
+      <div class="col-md-3 mb-4">
+        <div class="stats-card">
+          <div class="stats-icon">
+            <i class="fas fa-comment"></i>
+          </div>
+          <div class="stats-count">{{ activity_counts.comments }}</div>
+          <div class="stats-label">{% trans "Comments" %}</div>
+        </div>
+      </div>
+
+      <div class="col-md-3 mb-4">
+        <div class="stats-card">
+          <div class="stats-icon">
+            <i class="fas fa-star"></i>
+          </div>
+          <div class="stats-count">{{ activity_counts.ratings }}</div>
+          <div class="stats-label">{% trans "Ratings" %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Activity Feed -->
+    <div class="col-lg-8">
+      <div class="activity-feed">
+        <div class="dashboard-section-heading">
+          <h2>{% trans "Activity Feed" %}</h2>
+
+          <div class="d-flex align-items-center">
+            <!-- Activity filters -->
+            <div class="btn-group me-2">
+              <a href="{% url 'accounts:dashboard' %}?filter=all{% if activity_type %}&type={{ activity_type }}{% endif %}"
+                class="btn btn-sm {% if activity_filter == 'all' or not activity_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                {% trans "All" %}
+              </a>
+              <a href="{% url 'accounts:dashboard' %}?filter=friends{% if activity_type %}&type={{ activity_type }}{% endif %}"
+                class="btn btn-sm {% if activity_filter == 'friends' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                {% trans "Friends Only" %}
+              </a>
+              <a href="{% url 'accounts:dashboard' %}?filter=me{% if activity_type %}&type={{ activity_type }}{% endif %}"
+                class="btn btn-sm {% if activity_filter == 'me' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                {% trans "My Activity" %}
+              </a>
+            </div>
+
+            <!-- Activity type filter -->
+            <div class="dropdown me-2">
+              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="activityTypeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                {% if activity_type %}
+                  {% with display=activity_type|title %}
+                    {{ display }}
+                  {% endwith %}
+                {% else %}
+                  {% trans "All Types" %}
+                {% endif %}
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="activityTypeDropdown">
+                <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}?filter={{ activity_filter|default:'all' }}">{% trans "All Types" %}</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}?filter={{ activity_filter|default:'all' }}&type=character_create">{% trans "Character Creation" %}</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}?filter={{ activity_filter|default:'all' }}&type=character_update">{% trans "Character Updates" %}</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}?filter={{ activity_filter|default:'all' }}&type=comment">{% trans "Comments" %}</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}?filter={{ activity_filter|default:'all' }}&type=rating">{% trans "Ratings" %}</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}?filter={{ activity_filter|default:'all' }}&type=friendship">{% trans "Friendships" %}</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}?filter={{ activity_filter|default:'all' }}&type=message">{% trans "Chats" %}</a></li>
+              </ul>
+            </div>
+
+            <!-- View all & refresh buttons -->
+            <div class="btn-group">
+              <a href="{% url 'accounts:activity_list' %}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-list"></i> {% trans "View All" %}
+              </a>
+              <a href="{{ request.path }}?{% if request.GET %}{{ request.GET.urlencode }}{% endif %}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-sync-alt"></i> {% trans "Refresh" %}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {% if activities %}
+          {% for activity in activities %}
+            {% with activity_type=activity.activity_type %}
+              <div class="activity-card {{ activity_type }}">
+                <div class="activity-header">
+                  {% if activity.user.profile.avatar %}
+                    <img src="{{ activity.user.profile.get_avatar_url }}" alt="{{ activity.user.username }}" class="activity-avatar">
+                  {% else %}
+                    <div class="activity-avatar-placeholder">
+                      {{ activity.user.username|slice:":1" }}
+                    </div>
+                  {% endif %}
+
+                  <div class="activity-user">
+                    {{ activity.user.profile.get_display_name }}
+                  </div>
+
+                  <div class="activity-time">
+                    {{ activity.created_at|timesince }} {% trans "ago" %}
+                  </div>
+                </div>
+
+                <div class="activity-content">
+                  {% if activity_type == 'character_create' %}
+                    <span class="activity-icon text-success">
+                      <i class="fas fa-plus-circle"></i>
+                    </span>
+                    {% blocktrans with name=activity.extra_data.character_name %}Created a new character "{{ name }}"{% endblocktrans %}
+                    <a href="{% url 'characters:character_detail' activity.object_id %}" class="btn btn-sm btn-outline-primary ms-2">
+                      <i class="fas fa-eye"></i> {% trans "View" %}
+                    </a>
+
+                  {% elif activity_type == 'character_update' %}
+                    <span class="activity-icon text-info">
+                      <i class="fas fa-edit"></i>
+                    </span>
+                    {% blocktrans with name=activity.extra_data.character_name %}Updated character "{{ name }}"{% endblocktrans %}
+                    <a href="{% url 'characters:character_detail' activity.object_id %}" class="btn btn-sm btn-outline-primary ms-2">
+                      <i class="fas fa-eye"></i> {% trans "View" %}
+                    </a>
+
+                  {% elif activity_type == 'character_delete' %}
+                    <span class="activity-icon text-danger">
+                      <i class="fas fa-trash-alt"></i>
+                    </span>
+                    {% blocktrans with name=activity.extra_data.character_name %}Deleted character "{{ name }}"{% endblocktrans %}
+
+                  {% elif activity_type == 'comment' %}
+                    <span class="activity-icon text-warning">
+                      <i class="fas fa-comment"></i>
+                    </span>
+                    {% blocktrans with name=activity.extra_data.character_name owner=activity.extra_data.character_owner %}Commented on {{ owner }}'s character "{{ name }}"{% endblocktrans %}
+                    <a href="{% url 'characters:character_detail' activity.object_id %}" class="btn btn-sm btn-outline-primary ms-2">
+                      <i class="fas fa-eye"></i> {% trans "View" %}
+                    </a>
+
+                  {% elif activity_type == 'rating' %}
+                    <span class="activity-icon text-warning">
+                      <i class="fas fa-star"></i>
+                    </span>
+                    {% blocktrans with name=activity.extra_data.character_name owner=activity.extra_data.character_owner rating=activity.extra_data.rating %}Rated {{ owner }}'s character "{{ name }}" with {{ rating }} stars{% endblocktrans %}
+                    <a href="{% url 'characters:character_detail' activity.object_id %}" class="btn btn-sm btn-outline-primary ms-2">
+                      <i class="fas fa-eye"></i> {% trans "View" %}
+                    </a>
+
+                  {% elif activity_type == 'friendship' %}
+                    <span class="activity-icon text-purple">
+                      <i class="fas fa-user-friends"></i>
+                    </span>
+                    {% blocktrans with name=activity.extra_data.friend_username %}Became friends with {{ name }}{% endblocktrans %}
+
+                  {% elif activity_type == 'message' %}
+                    <span class="activity-icon text-pink">
+                      <i class="fas fa-comments"></i>
+                    </span>
+                    {% if activity.extra_data.participants|length > 1 %}
+                      {% blocktrans with participants=activity.extra_data.participants|join:", " %}Started a group chat with {{ participants }}{% endblocktrans %}
+                    {% else %}
+                      {% blocktrans with participant=activity.extra_data.participants.0 %}Started a chat with {{ participant }}{% endblocktrans %}
+                    {% endif %}
+                    <a href="{% url 'messages:room_detail' activity.object_id %}" class="btn btn-sm btn-outline-primary ms-2">
+                      <i class="fas fa-comments"></i> {% trans "Open Chat" %}
+                    </a>
+
+                  {% elif activity_type == 'login' %}
+                    <span class="activity-icon text-success">
+                      <i class="fas fa-sign-in-alt"></i>
+                    </span>
+                    {% trans "Logged in to the platform" %}
+
+                  {% endif %}
+                </div>
+              </div>
+            {% endwith %}
+          {% endfor %}
+
+          {% if activities_page.has_other_pages %}
+            <nav aria-label="Activity feed pagination" class="mt-4">
+              <ul class="pagination justify-content-center">
+                {% if activities_page.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link" href="?filter={{ activity_filter }}&page=1{% if activity_type %}&type={{ activity_type }}{% endif %}" aria-label="First">
+                      <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?filter={{ activity_filter }}&page={{ activities_page.previous_page_number }}{% if activity_type %}&type={{ activity_type }}{% endif %}" aria-label="Previous">
+                      <span aria-hidden="true">&laquo;</span>
+                    </a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="First">
+                      <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                  </li>
+                  <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                      <span aria-hidden="true">&laquo;</span>
+                    </a>
+                  </li>
+                {% endif %}
+
+                {% if activities_page.paginator.num_pages <= 5 %}
+                  {% for i in activities_page.paginator.page_range %}
+                    <li class="page-item {% if activities_page.number == i %}active{% endif %}">
+                      <a class="page-link" href="?filter={{ activity_filter }}&page={{ i }}{% if activity_type %}&type={{ activity_type }}{% endif %}">{{ i }}</a>
+                    </li>
+                  {% endfor %}
+                {% else %}
+                  {% for i in activities_page.paginator.page_range %}
+                    {% if activities_page.number == i %}
+                      <li class="page-item active">
+                        <a class="page-link" href="?filter={{ activity_filter }}&page={{ i }}{% if activity_type %}&type={{ activity_type }}{% endif %}">{{ i }}</a>
+                      </li>
+                    {% elif i > activities_page.number|add:"-3" and i < activities_page.number|add:"3" %}
+                      <li class="page-item">
+                        <a class="page-link" href="?filter={{ activity_filter }}&page={{ i }}{% if activity_type %}&type={{ activity_type }}{% endif %}">{{ i }}</a>
+                      </li>
+                    {% elif i == 1 or i == activities_page.paginator.num_pages %}
+                      <li class="page-item">
+                        <a class="page-link" href="?filter={{ activity_filter }}&page={{ i }}{% if activity_type %}&type={{ activity_type }}{% endif %}">{{ i }}</a>
+                      </li>
+                    {% elif i == activities_page.number|add:"-3" or i == activities_page.number|add:"3" %}
+                      <li class="page-item disabled">
+                        <a class="page-link" href="#">...</a>
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+
+                {% if activities_page.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="?filter={{ activity_filter }}&page={{ activities_page.next_page_number }}{% if activity_type %}&type={{ activity_type }}{% endif %}" aria-label="Next">
+                      <span aria-hidden="true">&raquo;</span>
+                    </a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?filter={{ activity_filter }}&page={{ activities_page.paginator.num_pages }}{% if activity_type %}&type={{ activity_type }}{% endif %}" aria-label="Last">
+                      <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Next">
+                      <span aria-hidden="true">&raquo;</span>
+                    </a>
+                  </li>
+                  <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Last">
+                      <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                  </li>
+                {% endif %}
+              </ul>
+            </nav>
+          {% endif %}
+        {% else %}
+          <div class="alert alert-info">
+            {% trans "No recent activity to show. Follow more people to see their activities here!" %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Pending Friend Requests -->
+      {% if friend_requests %}
+        <div class="mb-4">
+          <div class="dashboard-section-heading">
+            <h3>{% trans "Friend Requests" %}</h3>
+            <a href="{% url 'accounts:friend_request_list' %}" class="btn btn-sm btn-outline-primary">
+              {% trans "View All" %}
+            </a>
+          </div>
+
+          {% for request in friend_requests %}
+            <div class="request-card">
+              {% if request.from_user.profile.avatar %}
+                <img src="{{ request.from_user.profile.get_avatar_url }}" alt="{{ request.from_user.username }}" class="request-avatar">
+              {% else %}
+                <div class="request-avatar-placeholder">
+                  {{ request.from_user.username|slice:":1" }}
+                </div>
+              {% endif %}
+
+              <div class="request-content">
+                <div class="request-user">{{ request.from_user.profile.get_display_name }}</div>
+                <div class="request-time">{{ request.created_at|timesince }} {% trans "ago" %}</div>
+              </div>
+
+              <div class="request-actions">
+                <form method="post" action="{% url 'accounts:accept_friend_request' request.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-success">
+                    <i class="fas fa-check"></i>
+                  </button>
+                </form>
+
+                <form method="post" action="{% url 'accounts:reject_friend_request' request.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-danger">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Your Characters -->
+      {% if characters %}
+        <div class="mb-4">
+          <div class="dashboard-section-heading">
+            <h3>{% trans "Your Characters" %}</h3>
+            <a href="{% url 'characters:character_list' %}" class="btn btn-sm btn-outline-primary">
+              {% trans "View All" %}
+            </a>
+          </div>
+
+          <div class="row">
+            {% for character in characters %}
+              <div class="col-md-6 mb-3">
+                <a href="{% url 'characters:character_detail' character.pk %}" class="text-decoration-none">
+                  <div class="character-card">
+                    {% if character.has_images %}
+                      <img src="{{ character.get_primary_image.image.url }}" alt="{{ character.name }}" class="character-image">
+                    {% else %}
+                      <div class="character-image">
+                        {{ character.name|slice:":1" }}
+                      </div>
+                    {% endif %}
+
+                    <div class="character-body">
+                      <div class="character-name">{{ character.name }}</div>
+                      <div class="character-meta">
+                        {% with rating_count=character.get_rating_count %}
+                          {% if rating_count > 0 %}
+                            <i class="fas fa-star text-warning"></i> {{ character.get_average_rating }} ({{ rating_count }})
+                          {% else %}
+                            <i class="far fa-star text-muted"></i> {% trans "No ratings" %}
+                          {% endif %}
+                        {% endwith %}
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Recent Chats -->
+      {% if chat_rooms %}
+        <div class="mb-4">
+          <div class="dashboard-section-heading">
+            <h3>{% trans "Recent Chats" %}</h3>
+            <a href="{% url 'messages:room_list' %}" class="btn btn-sm btn-outline-primary">
+              {% trans "View All" %}
+            </a>
+          </div>
+
+          <div class="list-group">
+            {% for room in chat_rooms %}
+              <a href="{% url 'messages:room_detail' room.pk %}" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                  {% if room.name %}
+                    <h5 class="mb-1">{{ room.name }}</h5>
+                  {% else %}
+                    <h5 class="mb-1">
+                      {% for participant in room.participants.all %}
+                        {% if participant != user %}
+                          {{ participant.username }}{% if not forloop.last %}, {% endif %}
+                        {% endif %}
+                      {% endfor %}
+                    </h5>
+                  {% endif %}
+                  <small>{{ room.updated_at|timesince }}</small>
+                </div>
+
+                {% with last_message=room.get_last_message %}
+                  {% if last_message %}
+                    <p class="mb-1 text-truncate">
+                      {% if last_message.character %}
+                        <strong>{{ last_message.character.name }}:</strong>
+                      {% else %}
+                        <strong>{{ last_message.sender.username }}:</strong>
+                      {% endif %}
+                      {{ last_message.message }}
+                    </p>
+                  {% else %}
+                    <p class="mb-1 text-muted">{% trans "No messages yet" %}</p>
+                  {% endif %}
+                {% endwith %}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Discover Characters -->
+      {% if discover_characters %}
+        <div class="mb-4">
+          <div class="dashboard-section-heading">
+            <h3>{% trans "Discover Characters" %}</h3>
+            <a href="{% url 'characters:character_search' %}" class="btn btn-sm btn-outline-primary">
+              {% trans "Search More" %}
+            </a>
+          </div>
+
+          <div class="row">
+            {% for character in discover_characters %}
+              <div class="col-md-6 mb-3">
+                <a href="{% url 'characters:character_detail' character.pk %}" class="text-decoration-none">
+                  <div class="character-card">
+                    {% if character.has_images %}
+                      <img src="{{ character.get_primary_image.image.url }}" alt="{{ character.name }}" class="character-image">
+                    {% else %}
+                      <div class="character-image">
+                        {{ character.name|slice:":1" }}
+                      </div>
+                    {% endif %}
+
+                    <div class="character-body">
+                      <div class="character-name">{{ character.name }}</div>
+                      <div class="character-meta">
+                        {% trans "by" %} {{ character.user.username }}
+                      </div>
+                      <div class="character-meta">
+                        {% with rating_count=character.get_rating_count %}
+                          {% if rating_count > 0 %}
+                            <i class="fas fa-star text-warning"></i> {{ character.get_average_rating }} ({{ rating_count }})
+                          {% else %}
+                            <i class="far fa-star text-muted"></i> {% trans "No ratings" %}
+                          {% endif %}
+                        {% endwith %}
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

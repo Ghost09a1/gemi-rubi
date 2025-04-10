@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Preference" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white">
+          <h1 class="h3 mb-0">{% trans "Delete Preference" %}</h1>
+        </div>
+        <div class="card-body">
+          <p class="mb-4">
+            {% blocktrans with attr=object.get_attribute_display value=object.value %}
+              Are you sure you want to delete your "{{ attr }}" preference for "{{ value }}"?
+            {% endblocktrans %}
+          </p>
+
+          <div class="d-flex align-items-center p-3 mb-4 bg-light rounded">
+            <div>
+              {% if object.attribute == 'species' %}
+                <i class="fas fa-paw fa-2x me-3 text-primary"></i>
+              {% elif object.attribute == 'gender' %}
+                <i class="fas fa-venus-mars fa-2x me-3 text-info"></i>
+              {% elif object.attribute == 'tag' %}
+                <i class="fas fa-tag fa-2x me-3 text-success"></i>
+              {% elif object.attribute == 'kink' %}
+                <i class="fas fa-heart fa-2x me-3 text-danger"></i>
+              {% else %}
+                <i class="fas fa-star fa-2x me-3 text-warning"></i>
+              {% endif %}
+            </div>
+            <div>
+              <h5 class="mb-1">{{ object.value }}</h5>
+              <div class="text-muted">{{ object.get_attribute_display }} • Weight: {{ object.weight|floatformat:1 }}</div>
+            </div>
+          </div>
+
+          <p class="text-danger mb-4">
+            {% trans "This action cannot be undone." %}
+          </p>
+
+          <form method="post">
+            {% csrf_token %}
+            <div class="d-flex">
+              <button type="submit" class="btn btn-danger me-2">
+                <i class="fas fa-trash"></i> {% trans "Delete" %}
+              </button>
+              <a href="{% url 'recommendations:user_preferences' %}" class="btn btn-outline-secondary">
+                {% trans "Cancel" %}
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

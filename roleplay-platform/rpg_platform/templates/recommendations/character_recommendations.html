@@ -1,0 +1,540 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Character Recommendations" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .rec-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+
+  .rec-header {
+    margin-bottom: 2rem;
+  }
+
+  .rec-section {
+    margin-bottom: 3rem;
+  }
+
+  .rec-title {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .rec-card {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+    margin-bottom: 1.5rem;
+  }
+
+  .rec-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+
+  .rec-card-image {
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+
+  .rec-card-image-placeholder {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    color: #adb5bd;
+    font-size: 3rem;
+  }
+
+  .rec-card-body {
+    padding: 1.25rem;
+  }
+
+  .rec-card-footer {
+    padding: 0.75rem 1.25rem;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-top: 1px solid rgba(0, 0, 0, 0.125);
+  }
+
+  .rec-badge {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .rec-score {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-weight: bold;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+  }
+
+  .rec-filters {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .rec-filter-title {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .rec-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .rec-stat-card {
+    flex: 1;
+    background: #fff;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  }
+
+  .rec-stat-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+  }
+
+  .rec-stat-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+
+  .reason-pill {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50rem;
+    font-size: 0.875rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: #e9ecef;
+    color: #212529;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .reason-pill:hover {
+    background-color: #dee2e6;
+  }
+
+  .reason-pill.active {
+    background-color: #007bff;
+    color: #fff;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rec-container">
+  <div class="rec-header">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1>{% trans "Character Recommendations" %}</h1>
+      <div>
+        <a href="{% url 'recommendations:user_preferences' %}" class="btn btn-outline-primary me-2">
+          <i class="fas fa-sliders-h me-1"></i> {% trans "My Preferences" %}
+        </a>
+        <form method="post" action="{% url 'recommendations:regenerate' %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-sync-alt me-1"></i> {% trans "Refresh Recommendations" %}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="rec-filters">
+      <div class="rec-filter-title">
+        <i class="fas fa-filter me-2"></i> {% trans "Filter Recommendations" %}
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="rec-stats">
+        <div class="rec-stat-card">
+          <div class="rec-stat-number">{{ paginator.count }}</div>
+          <div class="rec-stat-label">{% trans "Total Recommendations" %}</div>
+        </div>
+
+        {% for reason, count in reason_counts.items %}
+          {% if count > 0 %}
+            <div class="rec-stat-card">
+              <div class="rec-stat-number">{{ count }}</div>
+              <div class="rec-stat-label">{{ recommendation_reasons|get_item:reason }}</div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <form method="get" action="" id="filter-form">
+        <div class="row mb-3">
+          <!-- Recommendation Reason Filter -->
+          <div class="col-md-12 mb-3">
+            <label class="form-label">{% trans "Recommendation Type" %}</label>
+            <div>
+              <span class="reason-pill {% if reason_filter == 'all' %}active{% endif %}" data-reason="all">
+                {% trans "All" %}
+              </span>
+
+              {% for reason, label in recommendation_reasons.items %}
+                {% if reason_counts|get_item:reason %}
+                  <span class="reason-pill {% if reason_filter == reason %}active{% endif %}" data-reason="{{ reason }}">
+                    {{ label }} ({{ reason_counts|get_item:reason }})
+                  </span>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <!-- Match Score Filter -->
+          <div class="col-md-4 mb-3">
+            <label class="form-label">{% trans "Match Score" %}</label>
+            <select name="min_score" class="form-select">
+              {% for option in score_ranges %}
+                <option value="{{ option.value }}" {% if min_score == option.value %}selected{% endif %}>
+                  {{ option.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Date Range Filter -->
+          <div class="col-md-4 mb-3">
+            <label class="form-label">{% trans "Character Created" %}</label>
+            <select name="date_filter" class="form-select">
+              {% for option in date_ranges %}
+                <option value="{{ option.value }}" {% if date_filter == option.value %}selected{% endif %}>
+                  {{ option.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Sort Order -->
+          <div class="col-md-4 mb-3">
+            <label class="form-label">{% trans "Sort By" %}</label>
+            <select name="sort" class="form-select">
+              {% for option in sort_options %}
+                <option value="{{ option.value }}" {% if sort_by == option.value %}selected{% endif %}>
+                  {{ option.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Hidden input for reason -->
+          <input type="hidden" name="reason" id="reason-input" value="{{ reason_filter }}">
+        </div>
+
+        <div class="text-center mt-3">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-filter me-1"></i> {% trans "Apply Filters" %}
+          </button>
+          <a href="{% url 'recommendations:character_recommendations' %}" class="btn btn-outline-secondary ms-2">
+            <i class="fas fa-redo me-1"></i> {% trans "Reset Filters" %}
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- All Recommendations Section (when filters are applied) -->
+  {% if reason_filter != 'all' or min_score or date_filter or sort_by != '-score' %}
+    <div class="rec-section">
+      <div class="rec-title">
+        <h2>
+          {% if reason_filter != 'all' %}
+            {{ recommendation_reasons|get_item:reason_filter }}
+          {% else %}
+            {% trans "Filtered Recommendations" %}
+          {% endif %}
+        </h2>
+      </div>
+
+      {% if recommendations %}
+        <div class="row">
+          {% for recommendation in recommendations %}
+            <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+              <div class="rec-card">
+                <!-- Card content goes here (existing code) -->
+
+                <!-- Recommendation Image -->
+                {% if recommendation.character.get_main_image %}
+                  <div class="rec-card-image" style="background-image: url('{{ recommendation.character.get_main_image.image.url }}');">
+                    <span class="rec-badge badge bg-{{ recommendation.character.visibility|yesno:'danger,success,warning' }}">
+                      {{ recommendation.character.get_visibility_display }}
+                    </span>
+                    <span class="rec-score">{{ recommendation.score|floatformat:2 }}</span>
+                  </div>
+                {% else %}
+                  <div class="rec-card-image-placeholder">
+                    <i class="fas fa-user-circle"></i>
+                  </div>
+                {% endif %}
+
+                <!-- Recommendation Content -->
+                <div class="rec-card-body">
+                  <h5 class="card-title mb-1">{{ recommendation.character.name }}</h5>
+                  <p class="card-text small text-muted mb-2">
+                    {% trans "by" %} {{ recommendation.character.user.username }}
+                  </p>
+                  <p class="card-text">
+                    {{ recommendation.character.description|truncatechars:100 }}
+                  </p>
+                </div>
+
+                <!-- Recommendation Footer -->
+                <div class="rec-card-footer d-flex justify-content-between align-items-center">
+                  <small class="text-muted">
+                    {{ recommendation.get_reason_display }}
+                  </small>
+                  <div>
+                    <a href="{% url 'characters:detail' recommendation.character.id %}" class="btn btn-sm btn-primary">
+                      {% trans "View" %}
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-secondary dismiss-recommendation" data-id="{{ recommendation.id }}">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+          <div class="d-flex justify-content-center mt-4">
+            <ul class="pagination">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page=1">
+                    <i class="fas fa-angle-double-left"></i>
+                  </a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                    <i class="fas fa-angle-left"></i>
+                  </a>
+                </li>
+              {% else %}
+                <li class="page-item disabled">
+                  <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                </li>
+                <li class="page-item disabled">
+                  <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                </li>
+              {% endif %}
+
+              {% for i in paginator.page_range %}
+                {% if page_obj.number == i %}
+                  <li class="page-item active">
+                    <span class="page-link">{{ i }}</span>
+                  </li>
+                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                  <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ i }}">{{ i }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">
+                    <i class="fas fa-angle-right"></i>
+                  </a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ paginator.num_pages }}">
+                    <i class="fas fa-angle-double-right"></i>
+                  </a>
+                </li>
+              {% else %}
+                <li class="page-item disabled">
+                  <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                </li>
+                <li class="page-item disabled">
+                  <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                </li>
+              {% endif %}
+            </ul>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          {% trans "No recommendations match your current filters. Try adjusting your filter criteria." %}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <!-- Grouped Recommendations Section (only shown if no filters applied) -->
+  {% if reason_filter == 'all' and not min_score and not date_filter and sort_by == '-score' %}
+    {% for reason, group in grouped_recommendations.items %}
+      <div class="rec-section">
+        <div class="rec-title">
+          <h2>{{ group.label }}</h2>
+        </div>
+
+        <div class="row">
+          {% for recommendation in group.recommendations %}
+            <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+              <div class="rec-card">
+                <!-- Card content (as above) -->
+
+                <!-- Recommendation Image -->
+                {% if recommendation.character.get_main_image %}
+                  <div class="rec-card-image" style="background-image: url('{{ recommendation.character.get_main_image.image.url }}');">
+                    <span class="rec-badge badge bg-{{ recommendation.character.visibility|yesno:'danger,success,warning' }}">
+                      {{ recommendation.character.get_visibility_display }}
+                    </span>
+                    <span class="rec-score">{{ recommendation.score|floatformat:2 }}</span>
+                  </div>
+                {% else %}
+                  <div class="rec-card-image-placeholder">
+                    <i class="fas fa-user-circle"></i>
+                  </div>
+                {% endif %}
+
+                <!-- Recommendation Content -->
+                <div class="rec-card-body">
+                  <h5 class="card-title mb-1">{{ recommendation.character.name }}</h5>
+                  <p class="card-text small text-muted mb-2">
+                    {% trans "by" %} {{ recommendation.character.user.username }}
+                  </p>
+                  <p class="card-text">
+                    {{ recommendation.character.description|truncatechars:100 }}
+                  </p>
+                </div>
+
+                <!-- Recommendation Footer -->
+                <div class="rec-card-footer d-flex justify-content-between align-items-center">
+                  <small class="text-muted">
+                    {{ recommendation.get_reason_display }}
+                  </small>
+                  <div>
+                    <a href="{% url 'characters:detail' recommendation.character.id %}" class="btn btn-sm btn-primary">
+                      {% trans "View" %}
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-secondary dismiss-recommendation" data-id="{{ recommendation.id }}">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="text-center mt-3">
+          <a href="?reason={{ reason }}" class="btn btn-outline-primary">
+            {% trans "View More" %} {{ group.label }}
+          </a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        {% trans "No recommendations found. Try refreshing your recommendations or creating some character preferences." %}
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle reason pill selection
+    const reasonPills = document.querySelectorAll('.reason-pill');
+    const reasonInput = document.getElementById('reason-input');
+
+    reasonPills.forEach(pill => {
+      pill.addEventListener('click', function() {
+        // Update active pill
+        reasonPills.forEach(p => p.classList.remove('active'));
+        this.classList.add('active');
+
+        // Update hidden input
+        reasonInput.value = this.dataset.reason;
+      });
+    });
+
+    // Handle recommendation dismissal
+    const dismissButtons = document.querySelectorAll('.dismiss-recommendation');
+
+    dismissButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const recommendationId = this.dataset.id;
+        const card = this.closest('.col-xl-3, .col-lg-4, .col-md-6');
+
+        // Send AJAX request to dismiss
+        fetch(`/recommendations/dismiss/${recommendationId}/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Animate card removal
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.8)';
+            card.style.transition = 'opacity 0.3s, transform 0.3s';
+
+            setTimeout(() => {
+              card.remove();
+            }, 300);
+          }
+        });
+      });
+    });
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  });
+</script>
+{% endblock %}

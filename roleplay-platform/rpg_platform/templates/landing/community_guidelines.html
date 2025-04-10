@@ -1,0 +1,130 @@
+{% extends "landing/base_landing.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Community Guidelines | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="terms-container my-4">
+        <h1 class="display-6 fw-bold mb-4 text-center">Community Guidelines</h1>
+        <p class="text-muted text-center mb-5">Last updated: {% now "F j, Y" %}</p>
+
+        <div class="alert alert-info mb-4">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class="fas fa-users fa-2x"></i>
+                </div>
+                <div>
+                    <h5 class="alert-heading">Creating a Safe and Inclusive Community</h5>
+                    <p class="mb-0">These guidelines help ensure that RoleplayHub remains a respectful and creative space for all users. By joining our community, you agree to follow these guidelines in all your interactions.</p>
+                </div>
+            </div>
+        </div>
+
+        <h2>1. Introduction</h2>
+        <p>Our community guidelines are designed to foster a creative, inclusive, and respectful environment for all users. These guidelines apply to all content and interactions on our platform, including character profiles, messages, chat rooms, and any other forms of communication.</p>
+
+        <h2>2. Core Principles</h2>
+        <p>Our community is built on the following principles:</p>
+        <ul>
+            <li><strong>Respect:</strong> Treat all users with respect and dignity.</li>
+            <li><strong>Consent:</strong> Always respect boundaries and obtain explicit consent for roleplay scenarios.</li>
+            <li><strong>Creativity:</strong> Encourage creative expression within the boundaries of our guidelines.</li>
+            <li><strong>Safety:</strong> Prioritize the safety and wellbeing of all community members.</li>
+            <li><strong>Inclusivity:</strong> Embrace diversity and create an inclusive environment for all users.</li>
+        </ul>
+
+        <h2>3. Age Restrictions</h2>
+        <p>RoleplayHub is an 18+ platform. All users must be at least 18 years of age to register and use our services. We prohibit:</p>
+        <ul>
+            <li>Users under the age of 18</li>
+            <li>Content that sexualizes or romanticizes minors in any way</li>
+            <li>Roleplaying as a minor in adult or romantic contexts</li>
+            <li>Characters under 18 years of age in any adult-themed roleplay</li>
+        </ul>
+
+        <h2>4. Consent and Boundaries</h2>
+        <p>Consent is the cornerstone of our community. We expect all users to:</p>
+        <ul>
+            <li>Use our consent system to establish clear boundaries before roleplaying</li>
+            <li>Respect when others say "no" or express discomfort</li>
+            <li>Obtain explicit consent before introducing new or sensitive themes</li>
+            <li>End interactions respectfully when boundaries are incompatible</li>
+            <li>Never pressure others to engage in content they're uncomfortable with</li>
+        </ul>
+
+        <h2>5. Prohibited Content</h2>
+        <p>The following content is strictly prohibited on our platform:</p>
+        <ul>
+            <li>Any content that sexualizes or romanticizes minors</li>
+            <li>Content promoting real-world violence, discrimination, or hate</li>
+            <li>Non-consensual sexual content or promotions of sexual violence</li>
+            <li>Harassment, bullying, or intimidation of any user</li>
+            <li>Doxing, exposing private information, or threats against users</li>
+            <li>Spam, scams, or commercial solicitation</li>
+            <li>Content that violates intellectual property rights</li>
+            <li>Impersonation of other users, staff, or public figures</li>
+        </ul>
+
+        <h2>6. Adult Content</h2>
+        <p>Adult content is allowed on our platform with the following restrictions:</p>
+        <ul>
+            <li>All participants must be 18+</li>
+            <li>Adult content must be properly labeled and kept in appropriate channels</li>
+            <li>All adult content must involve fictional adult characters</li>
+            <li>All participants must consent to the specific type of content</li>
+            <li>Public profiles should not contain explicit content</li>
+        </ul>
+
+        <h2>7. Respectful Communication</h2>
+        <p>We expect all users to communicate respectfully:</p>
+        <ul>
+            <li>Be mindful of tone and language in all interactions</li>
+            <li>Avoid personal attacks or inflammatory language</li>
+            <li>Respect others' pronouns and identities</li>
+            <li>Recognize cultural differences and sensitivities</li>
+            <li>Accept criticism gracefully and learn from feedback</li>
+        </ul>
+
+        <h2>8. Privacy and Confidentiality</h2>
+        <p>Respect the privacy of other users:</p>
+        <ul>
+            <li>Do not share private conversations without explicit permission</li>
+            <li>Never share anyone's personal information</li>
+            <li>Respect users who wish to remain anonymous</li>
+            <li>Do not screenshot or share content from private roleplay sessions</li>
+        </ul>
+
+        <h2>9. Reporting Violations</h2>
+        <p>If you encounter content or behavior that violates these guidelines:</p>
+        <ul>
+            <li>Use the report function to alert moderators</li>
+            <li>Provide specific details about the violation</li>
+            <li>Do not engage with or escalate harmful interactions</li>
+            <li>Contact support for urgent concerns</li>
+        </ul>
+
+        <h2>10. Moderation and Enforcement</h2>
+        <p>Our moderation team enforces these guidelines to maintain a safe environment:</p>
+        <ul>
+            <li>Violations may result in warnings, temporary restrictions, or permanent bans</li>
+            <li>Serious violations will result in immediate account termination</li>
+            <li>Our team reviews all reports fairly and thoroughly</li>
+            <li>Appeals can be submitted for moderation decisions</li>
+            <li>We may report illegal content to appropriate authorities</li>
+        </ul>
+
+        <h2>11. Changes to Guidelines</h2>
+        <p>These guidelines may be updated periodically. We will notify users of significant changes and provide time to adjust to new expectations. Continued use of the platform constitutes acceptance of the current guidelines.</p>
+
+        <h2>12. Questions and Feedback</h2>
+        <p>If you have questions or feedback about these guidelines, please contact us at:</p>
+        <p>Email: community@roleplayhub.com</p>
+
+        <div class="text-center mt-5">
+            <a href="{% url 'landing:home' %}#signup-section" class="btn btn-primary">I Agree & Want to Sign Up</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

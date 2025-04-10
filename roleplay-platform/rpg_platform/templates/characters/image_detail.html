@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{{ image.title|default:image.get_filename }} - {{ character.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .image-detail-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .image-detail-container {
+      flex-direction: row;
+    }
+  }
+
+  .image-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    position: relative;
+  }
+
+  .detail-image {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+  }
+
+  .image-info {
+    width: 100%;
+
+    @media (min-width: 768px) {
+      width: 300px;
+    }
+  }
+
+  .info-panel {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .info-panel h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .info-row {
+    display: flex;
+    margin-bottom: 0.75rem;
+  }
+
+  .info-label {
+    width: 100px;
+    font-weight: 500;
+    color: #6c757d;
+  }
+
+  .info-value {
+    flex: 1;
+  }
+
+  .primary-badge {
+    display: inline-block;
+    background-color: #198754;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 0.25rem;
+    margin-right: 0.5rem;
+  }
+
+  .navigation-container {
+    position: absolute;
+    width: 100%;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    padding: 0 1rem;
+    pointer-events: none;
+  }
+
+  .nav-button {
+    width: 48px;
+    height: 48px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 1.5rem;
+    text-decoration: none;
+    pointer-events: auto;
+    transition: background-color 0.2s;
+  }
+
+  .nav-button:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+  }
+
+  .nav-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ image.title|default:image.get_filename }}</h1>
+    <div>
+      <a href="{% url 'characters:image_list' character.pk %}" class="btn btn-secondary">
+        <i class="fas fa-th"></i> {% trans "All Images" %}
+      </a>
+    </div>
+  </div>
+
+  <div class="image-detail-container">
+    <!-- Image display -->
+    <div class="image-container">
+      <img src="{{ image.image.url }}" alt="{{ image.title }}" class="detail-image">
+
+      <!-- Navigation buttons -->
+      <div class="navigation-container">
+        {% if prev_image_pk %}
+          <a href="{% url 'characters:image_detail' character_pk=character.pk pk=prev_image_pk %}" class="nav-button">
+            <i class="fas fa-chevron-left"></i>
+          </a>
+        {% else %}
+          <span class="nav-button disabled">
+            <i class="fas fa-chevron-left"></i>
+          </span>
+        {% endif %}
+
+        {% if next_image_pk %}
+          <a href="{% url 'characters:image_detail' character_pk=character.pk pk=next_image_pk %}" class="nav-button">
+            <i class="fas fa-chevron-right"></i>
+          </a>
+        {% else %}
+          <span class="nav-button disabled">
+            <i class="fas fa-chevron-right"></i>
+          </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Image information -->
+    <div class="image-info">
+      <div class="info-panel">
+        <h3>{% trans "Image Information" %}</h3>
+
+        <div class="info-row">
+          <div class="info-label">{% trans "Status" %}:</div>
+          <div class="info-value">
+            {% if image.is_primary %}
+              <span class="primary-badge">{% trans "Primary" %}</span>
+            {% else %}
+              {% trans "Regular" %}
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-label">{% trans "Filename" %}:</div>
+          <div class="info-value">{{ image.get_filename }}</div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-label">{% trans "Size" %}:</div>
+          <div class="info-value">{{ image.get_file_size_display }}</div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-label">{% trans "Type" %}:</div>
+          <div class="info-value">{{ image.get_file_extension|upper }}</div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-label">{% trans "Uploaded" %}:</div>
+          <div class="info-value">{{ image.uploaded_at|date:"SHORT_DATETIME_FORMAT" }}</div>
+        </div>
+
+        {% if image.description %}
+          <div class="mt-3">
+            <div class="info-label mb-1">{% trans "Description" %}:</div>
+            <div>{{ image.description|linebreaks }}</div>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <div class="btn-group w-100">
+          <a href="{% url 'characters:image_update' character_pk=character.pk pk=image.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> {% trans "Edit" %}
+          </a>
+
+          {% if not image.is_primary %}
+            <form method="post" action="{% url 'characters:image_make_primary' character_pk=character.pk pk=image.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-star"></i> {% trans "Make Primary" %}
+              </button>
+            </form>
+          {% endif %}
+
+          <a href="{% url 'characters:image_delete' character_pk=character.pk pk=image.pk %}" class="btn btn-danger">
+            <i class="fas fa-trash"></i> {% trans "Delete" %}
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <a href="{{ image.image.url }}" target="_blank" class="btn btn-outline-secondary w-100">
+          <i class="fas fa-external-link-alt"></i> {% trans "View Full Size" %}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

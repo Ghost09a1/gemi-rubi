@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Send Friend Request" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .request-container {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .request-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .recipient-card {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .recipient-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    object-fit: cover;
+    background-color: #e9ecef;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    color: #6c757d;
+    flex-shrink: 0;
+  }
+
+  .recipient-info {
+    flex: 1;
+  }
+
+  .recipient-name {
+    font-weight: 500;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .recipient-username {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="request-container">
+    <div class="request-header">
+      <h1>{% trans "Send Friend Request" %}</h1>
+      <div>
+        <a href="{% url 'accounts:friend_list' %}" class="btn btn-outline-primary">
+          <i class="fas fa-users"></i> {% trans "My Friends" %}
+        </a>
+        <a href="{% url 'accounts:user_search' %}" class="btn btn-outline-secondary ms-2">
+          <i class="fas fa-search"></i> {% trans "Find Friends" %}
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">{% trans "Send a request to" %}</h5>
+      </div>
+      <div class="card-body">
+        <!-- Recipient info -->
+        <div class="recipient-card">
+          {% if recipient.profile.avatar %}
+            <img src="{{ recipient.profile.get_avatar_url }}" alt="{{ recipient.username }}" class="recipient-avatar">
+          {% else %}
+            <div class="recipient-avatar">
+              {{ recipient.username|slice:":1" }}
+            </div>
+          {% endif %}
+
+          <div class="recipient-info">
+            <div class="recipient-name">
+              {{ recipient.profile.get_display_name }}
+            </div>
+            <div class="recipient-username">
+              @{{ recipient.username }}
+            </div>
+          </div>
+
+          <a href="{% url 'accounts:profile_detail' recipient.username %}" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-user"></i> {% trans "View Profile" %}
+          </a>
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            {{ form.message.label_tag }}
+            {{ form.message }}
+            {% if form.message.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.message.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+            <div class="form-text">
+              {% trans "Add a personal message to let the recipient know who you are or why you want to connect." %}
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <a href="{% url 'accounts:user_search' %}{% if request.GET.q %}?q={{ request.GET.q }}{% endif %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left"></i> {% trans "Back" %}
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-paper-plane"></i> {% trans "Send Friend Request" %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

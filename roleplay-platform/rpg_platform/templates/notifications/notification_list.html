@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Notifications" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .notifications-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .notification-card {
+    display: flex;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+    padding: 1rem;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .notification-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .notification-card.unread {
+    border-left: 4px solid #0d6efd;
+  }
+
+  .notification-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 1rem;
+    font-size: 1.25rem;
+  }
+
+  .notification-icon.message {
+    background-color: #cfe2ff;
+    color: #0d6efd;
+  }
+
+  .notification-icon.friend {
+    background-color: #d1e7dd;
+    color: #198754;
+  }
+
+  .notification-icon.like {
+    background-color: #f8d7da;
+    color: #dc3545;
+  }
+
+  .notification-icon.comment {
+    background-color: #fff3cd;
+    color: #ffc107;
+  }
+
+  .notification-icon.system {
+    background-color: #e2e3e5;
+    color: #212529;
+  }
+
+  .notification-content {
+    flex: 1;
+  }
+
+  .notification-actions {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+  }
+
+  .notification-actions .dropdown-toggle::after {
+    display: none;
+  }
+
+  .notification-title {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
+
+  .notification-body {
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+  }
+
+  .notification-time {
+    font-size: 0.8rem;
+    color: #adb5bd;
+  }
+
+  .empty-notifications {
+    text-align: center;
+    padding: 3rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 2rem;
+  }
+
+  .empty-notifications-icon {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="notifications-container">
+    <div class="notifications-header">
+      <h1>{% trans "Notifications" %}</h1>
+
+      {% if notifications %}
+        <form method="post" action="{% url 'notifications:mark_all_read' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-primary">
+            <i class="fas fa-check-double"></i> {% trans "Mark All as Read" %}
+          </button>
+        </form>
+      {% endif %}
+    </div>
+
+    {% if notifications %}
+      <div class="notifications-list">
+        {% for notification in notifications %}
+          <div class="notification-card {% if not notification.read %}unread{% endif %}">
+            <!-- Notification type icon -->
+            <div class="notification-icon {% if notification.notification_type == 'message' %}message{% elif notification.notification_type == 'friend_request' %}friend{% elif notification.notification_type == 'character_like' %}like{% elif notification.notification_type == 'character_comment' %}comment{% else %}system{% endif %}">
+              {% if notification.notification_type == 'message' %}
+                <i class="fas fa-envelope"></i>
+              {% elif notification.notification_type == 'friend_request' %}
+                <i class="fas fa-user-plus"></i>
+              {% elif notification.notification_type == 'character_like' %}
+                <i class="fas fa-heart"></i>
+              {% elif notification.notification_type == 'character_comment' %}
+                <i class="fas fa-comment"></i>
+              {% else %}
+                <i class="fas fa-bell"></i>
+              {% endif %}
+            </div>
+
+            <!-- Notification content -->
+            <div class="notification-content">
+              <div class="notification-title">
+                {% if notification.actor %}
+                  <strong>{{ notification.actor.username }}</strong> {{ notification.verb }}
+                {% else %}
+                  <strong>{% trans "System" %}</strong> {{ notification.verb }}
+                {% endif %}
+              </div>
+
+              <div class="notification-time">
+                {{ notification.created_at|timesince }} {% trans "ago" %}
+              </div>
+            </div>
+
+            <!-- Notification actions -->
+            <div class="notification-actions">
+              <div class="dropdown">
+                <button class="btn btn-sm btn-link text-muted" type="button" id="notificationActionsDropdown{{ notification.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationActionsDropdown{{ notification.id }}">
+                  {% if not notification.read %}
+                    <li>
+                      <form method="post" action="{% url 'notifications:mark_read' notification.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item">
+                          <i class="fas fa-check"></i> {% trans "Mark as read" %}
+                        </button>
+                      </form>
+                    </li>
+                  {% endif %}
+                  <li>
+                    <form method="post" action="{% url 'notifications:delete' notification.id %}">
+                      {% csrf_token %}
+                      <button type="submit" class="dropdown-item text-danger">
+                        <i class="fas fa-trash"></i> {% trans "Delete" %}
+                      </button>
+                    </form>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+        <nav aria-label="{% trans 'Notification pagination' %}">
+          <ul class="pagination justify-content-center mt-4">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page=1">
+                  <i class="fas fa-angle-double-left"></i>
+                </a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                  <i class="fas fa-angle-left"></i>
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled">
+                <span class="page-link">
+                  <i class="fas fa-angle-double-left"></i>
+                </span>
+              </li>
+              <li class="page-item disabled">
+                <span class="page-link">
+                  <i class="fas fa-angle-left"></i>
+                </span>
+              </li>
+            {% endif %}
+
+            <li class="page-item active">
+              <span class="page-link">
+                {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+              </span>
+            </li>
+
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                  <i class="fas fa-angle-right"></i>
+                </a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                  <i class="fas fa-angle-double-right"></i>
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled">
+                <span class="page-link">
+                  <i class="fas fa-angle-right"></i>
+                </span>
+              </li>
+              <li class="page-item disabled">
+                <span class="page-link">
+                  <i class="fas fa-angle-double-right"></i>
+                </span>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+      {% endif %}
+    {% else %}
+      <div class="empty-notifications">
+        <div class="empty-notifications-icon">
+          <i class="fas fa-bell-slash"></i>
+        </div>
+        <h3>{% trans "No Notifications" %}</h3>
+        <p>{% trans "You don't have any notifications at the moment." %}</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h1 class="h3 mb-0">{{ title }}</h1>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label for="{{ form.attribute.id_for_label }}" class="form-label">
+                {% trans "Attribute Type" %}
+              </label>
+              {{ form.attribute|safe }}
+              {% if form.attribute.help_text %}
+                <div class="form-text">{{ form.attribute.help_text }}</div>
+              {% endif %}
+              {% if form.attribute.errors %}
+                <div class="invalid-feedback">{{ form.attribute.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.value.id_for_label }}" class="form-label">
+                {% trans "Value" %}
+              </label>
+              {{ form.value|safe }}
+              {% if form.value.help_text %}
+                <div class="form-text">{{ form.value.help_text }}</div>
+              {% endif %}
+              {% if form.value.errors %}
+                <div class="invalid-feedback">{{ form.value.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.weight.id_for_label }}" class="form-label">
+                {% trans "Importance Weight" %}
+              </label>
+              <div class="d-flex align-items-center">
+                <input type="range" class="form-range me-2"
+                  min="0.1" max="5" step="0.1"
+                  id="weight-slider"
+                  value="{{ form.weight.value|default:'1.0' }}"
+                  oninput="document.getElementById('id_weight').value=this.value; document.getElementById('weight-display').textContent=this.value;">
+                {{ form.weight|safe }}
+                <span id="weight-display" class="ms-2">{{ form.weight.value|default:'1.0' }}</span>
+              </div>
+              {% if form.weight.help_text %}
+                <div class="form-text">{{ form.weight.help_text }}</div>
+              {% endif %}
+              {% if form.weight.errors %}
+                <div class="invalid-feedback">{{ form.weight.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mt-4">
+              <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+              <a href="{% url 'recommendations:user_preferences' %}" class="btn btn-outline-secondary ms-2">
+                {% trans "Cancel" %}
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize the range slider with the current weight value
+  const weightField = document.getElementById('id_weight');
+  const weightSlider = document.getElementById('weight-slider');
+  const weightDisplay = document.getElementById('weight-display');
+
+  weightSlider.value = weightField.value || 1.0;
+  weightDisplay.textContent = weightField.value || 1.0;
+
+  // Update the number input when the slider changes
+  weightSlider.addEventListener('input', function() {
+    weightField.value = this.value;
+    weightDisplay.textContent = this.value;
+  });
+
+  // Update the slider when the number input changes
+  weightField.addEventListener('input', function() {
+    weightSlider.value = this.value;
+    weightDisplay.textContent = this.value;
+  });
+});
+</script>
+{% endblock %}

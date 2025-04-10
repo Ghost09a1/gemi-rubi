@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Reorder Images" %} - {{ character.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .reorder-container {
+    margin-bottom: 2rem;
+  }
+
+  .reorder-instructions {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+  }
+
+  .reorder-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .reorder-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    cursor: move;
+    transition: background-color 0.2s, transform 0.2s;
+  }
+
+  .reorder-item:hover {
+    background-color: #e9ecef;
+  }
+
+  .reorder-item.dragging {
+    opacity: 0.5;
+    background-color: #e2e6ea;
+    transform: scale(1.02);
+  }
+
+  .reorder-handle {
+    padding: 0 0.5rem;
+    margin-right: 0.5rem;
+    cursor: grab;
+    color: #6c757d;
+  }
+
+  .reorder-item-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 0.25rem;
+    object-fit: cover;
+    margin-right: 1rem;
+  }
+
+  .reorder-item-info {
+    flex-grow: 1;
+  }
+
+  .reorder-item-title {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
+
+  .reorder-item-meta {
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+
+  .reorder-primary {
+    font-size: 0.75rem;
+    background-color: #198754;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    margin-left: 0.5rem;
+  }
+
+  .save-results {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+  }
+
+  .save-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+  }
+
+  .save-error {
+    background-color: #f8d7da;
+    color: #842029;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h1>{% trans "Reorder Images" %} - {{ character.name }}</h1>
+    <div>
+      <a href="{% url 'characters:image_list' character.pk %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> {% trans "Back to Images" %}
+      </a>
+    </div>
+  </div>
+
+  <div class="reorder-container">
+    <div class="reorder-instructions">
+      <h5>{% trans "Instructions" %}</h5>
+      <p>{% trans "Drag and drop the images to change their display order. The primary image will always appear first, regardless of order." %}</p>
+      <p class="mb-0">{% trans "Changes are saved automatically when you reorder images." %}</p>
+    </div>
+
+    {% if images %}
+      <ul class="reorder-list" id="reorder-list">
+        {% for image in images %}
+          <li class="reorder-item" data-id="{{ image.id }}">
+            <div class="reorder-handle">
+              <i class="fas fa-grip-vertical"></i>
+            </div>
+            <img src="{{ image.image.url }}" alt="{{ image.title }}" class="reorder-item-image">
+            <div class="reorder-item-info">
+              <div class="reorder-item-title">
+                {{ image.title|default:image.get_filename }}
+                {% if image.is_primary %}
+                  <span class="reorder-primary">{% trans "Primary" %}</span>
+                {% endif %}
+              </div>
+              <div class="reorder-item-meta">
+                {% trans "Order:" %} {{ image.order }}
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+
+      <div id="save-results" class="save-results"></div>
+
+      <form id="reorder-form" method="post">
+        {% csrf_token %}
+        <!-- Hidden fields for the new order will be added by JavaScript -->
+      </form>
+    {% else %}
+      <div class="alert alert-info">
+        {% trans "No images to reorder." %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const reorderList = document.getElementById('reorder-list');
+    const reorderForm = document.getElementById('reorder-form');
+    const saveResults = document.getElementById('save-results');
+
+    if (!reorderList || !reorderForm) return;
+
+    // Initialize Sortable
+    const sortable = new Sortable(reorderList, {
+      animation: 150,
+      handle: '.reorder-handle',
+      draggable: '.reorder-item',
+      ghostClass: 'dragging',
+      onEnd: function() {
+        // Get the new order
+        const items = reorderList.querySelectorAll('.reorder-item');
+        const newOrder = [];
+
+        items.forEach(item => {
+          newOrder.push(item.dataset.id);
+        });
+
+        // Save the new order
+        saveOrder(newOrder);
+      }
+    });
+
+    // Function to save the order via AJAX
+    function saveOrder(order) {
+      // Clear previous results
+      saveResults.innerHTML = '';
+      saveResults.className = 'save-results';
+      saveResults.style.display = 'none';
+
+      // Create form data
+      const formData = new FormData();
+
+      // Add CSRF token
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      formData.append('csrfmiddlewaretoken', csrfToken);
+
+      // Add image order
+      order.forEach(id => {
+        formData.append('image_order', id);
+      });
+
+      // Send AJAX request
+      fetch(window.location.href, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          saveResults.innerHTML = '<i class="fas fa-check-circle"></i> {% trans "Image order saved successfully" %}';
+          saveResults.className = 'save-results save-success';
+        } else {
+          saveResults.innerHTML = '<i class="fas fa-exclamation-triangle"></i> {% trans "Error saving image order:" %} ' + data.error;
+          saveResults.className = 'save-results save-error';
+        }
+
+        saveResults.style.display = 'block';
+
+        // Hide the message after 3 seconds
+        setTimeout(function() {
+          saveResults.style.display = 'none';
+        }, 3000);
+      })
+      .catch(error => {
+        saveResults.innerHTML = '<i class="fas fa-exclamation-triangle"></i> {% trans "Error:" %} ' + error;
+        saveResults.className = 'save-results save-error';
+        saveResults.style.display = 'block';
+      });
+    }
+  });
+</script>
+{% endblock %}

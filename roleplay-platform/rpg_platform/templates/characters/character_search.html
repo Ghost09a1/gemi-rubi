@@ -1,0 +1,647 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Character Search" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .search-container {
+    display: flex;
+    gap: 1.5rem;
+    flex-direction: column;
+  }
+
+  @media (min-width: 992px) {
+    .search-container {
+      flex-direction: row;
+    }
+  }
+
+  .search-sidebar {
+    width: 100%;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+
+    @media (min-width: 992px) {
+      width: 300px;
+      flex-shrink: 0;
+    }
+  }
+
+  .search-results {
+    flex: 1;
+  }
+
+  .search-box {
+    margin-bottom: 1.5rem;
+  }
+
+  .filter-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .filter-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+
+  .filter-title {
+    font-weight: 500;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .filter-collapse-btn {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.875rem;
+  }
+
+  .gender-filter {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .form-check-label {
+    cursor: pointer;
+  }
+
+  .age-filter {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .age-input {
+    flex: 1;
+  }
+
+  .kink-select {
+    height: 200px;
+  }
+
+  .active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .filter-badge {
+    background-color: #e9ecef;
+    border-radius: 50rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .filter-badge-clear {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #6c757d;
+    cursor: pointer;
+  }
+
+  .filter-badge-clear:hover {
+    color: #495057;
+  }
+
+  .clear-all-filters {
+    background: none;
+    border: none;
+    color: #6c757d;
+    text-decoration: underline;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .search-stats {
+    margin-bottom: 1rem;
+  }
+
+  .character-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .character-card {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .character-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  .character-image {
+    height: 200px;
+    background-color: #f8f9fa;
+    position: relative;
+  }
+
+  .character-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .character-info {
+    padding: 1rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .character-name {
+    font-weight: 500;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .character-details {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .character-action {
+    margin-top: auto;
+  }
+
+  .empty-results {
+    padding: 3rem;
+    text-align: center;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+  }
+
+  .empty-results-icon {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: 1rem;
+  }
+
+  .optgroup-header {
+    font-weight: bold;
+    background-color: #f1f3f5;
+    padding: 0.25rem 0.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>{% trans "Character Search" %}</h1>
+
+  <div class="search-container">
+    <!-- Search Filters Sidebar -->
+    <div class="search-sidebar">
+      <form method="get" id="search-form">
+        <!-- Search box -->
+        <div class="search-box">
+          <label for="{{ form.search.id_for_label }}" class="form-label">{% trans "Search" %}</label>
+          {{ form.search }}
+        </div>
+
+        <!-- Active filters -->
+        {% if filter_count > 0 %}
+          <div class="active-filters">
+            {% if form.search.value %}
+              <div class="filter-badge">
+                <span>{{ form.search.value }}</span>
+                <button type="button" class="filter-badge-clear" data-field="search">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            {% endif %}
+
+            {% if form.gender.value %}
+              <div class="filter-badge">
+                <span>{% trans "Gender" %}: {{ form.gender.value }}</span>
+                <button type="button" class="filter-badge-clear" data-field="gender">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            {% endif %}
+
+            {% if form.min_age.value or form.max_age.value %}
+              <div class="filter-badge">
+                <span>{% trans "Age" %}:
+                  {% if form.min_age.value and form.max_age.value %}
+                    {{ form.min_age.value }} - {{ form.max_age.value }}
+                  {% elif form.min_age.value %}
+                    {% trans "Min" %} {{ form.min_age.value }}
+                  {% elif form.max_age.value %}
+                    {% trans "Max" %} {{ form.max_age.value }}
+                  {% endif %}
+                </span>
+                <button type="button" class="filter-badge-clear" data-field="age">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            {% endif %}
+
+            {% if form.species.value %}
+              <div class="filter-badge">
+                <span>{% trans "Species" %}: {{ form.species.value }}</span>
+                <button type="button" class="filter-badge-clear" data-field="species">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            {% endif %}
+
+            {% if form.has_images.value %}
+              <div class="filter-badge">
+                <span>{% trans "Has Images" %}</span>
+                <button type="button" class="filter-badge-clear" data-field="has_images">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            {% endif %}
+
+            {% for kink in form.kinks.value %}
+              <div class="filter-badge">
+                <span>{% trans "Kink" %}: {{ kink }}</span>
+                <button type="button" class="filter-badge-clear" data-field="kinks" data-value="{{ kink.pk }}">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            {% endfor %}
+
+            {% if form.kink_rating.value %}
+              <div class="filter-badge">
+                <span>{% trans "Kink Rating" %}:
+                  {% if form.kink_rating.value == 'fave' %}
+                    {% trans "Favorite" %}
+                  {% elif form.kink_rating.value == 'yes' %}
+                    {% trans "Yes" %}
+                  {% elif form.kink_rating.value == 'maybe' %}
+                    {% trans "Maybe" %}
+                  {% elif form.kink_rating.value == 'no' %}
+                    {% trans "No" %}
+                  {% endif %}
+                </span>
+                <button type="button" class="filter-badge-clear" data-field="kink_rating">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            {% endif %}
+
+            <button type="button" class="clear-all-filters">
+              {% trans "Clear All" %}
+            </button>
+          </div>
+        {% endif %}
+
+        <!-- Filters -->
+        <div class="filter-section">
+          <div class="filter-title">
+            <span>{% trans "Gender" %}</span>
+            <button type="button" class="filter-collapse-btn" data-bs-toggle="collapse" data-bs-target="#gender-filter-content">
+              <i class="fas fa-chevron-down"></i>
+            </button>
+          </div>
+
+          <div id="gender-filter-content" class="collapse show">
+            <div class="gender-filter">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" value="male" id="gender_male" name="gender"
+                  {% if form.gender.value == 'male' %}checked{% endif %}>
+                <label class="form-check-label" for="gender_male">
+                  {% trans "Male" %}
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" value="female" id="gender_female" name="gender"
+                  {% if form.gender.value == 'female' %}checked{% endif %}>
+                <label class="form-check-label" for="gender_female">
+                  {% trans "Female" %}
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" value="other" id="gender_other" name="gender"
+                  {% if form.gender.value == 'other' %}checked{% endif %}>
+                <label class="form-check-label" for="gender_other">
+                  {% trans "Other" %}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-title">
+            <span>{% trans "Age Range" %}</span>
+            <button type="button" class="filter-collapse-btn" data-bs-toggle="collapse" data-bs-target="#age-filter-content">
+              <i class="fas fa-chevron-down"></i>
+            </button>
+          </div>
+
+          <div id="age-filter-content" class="collapse show">
+            <div class="age-filter">
+              <div class="age-input">
+                {{ form.min_age }}
+              </div>
+              <span>—</span>
+              <div class="age-input">
+                {{ form.max_age }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-title">
+            <span>{% trans "Species" %}</span>
+            <button type="button" class="filter-collapse-btn" data-bs-toggle="collapse" data-bs-target="#species-filter-content">
+              <i class="fas fa-chevron-down"></i>
+            </button>
+          </div>
+
+          <div id="species-filter-content" class="collapse show">
+            {{ form.species }}
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-title">
+            <span>{% trans "Other Filters" %}</span>
+            <button type="button" class="filter-collapse-btn" data-bs-toggle="collapse" data-bs-target="#other-filter-content">
+              <i class="fas fa-chevron-down"></i>
+            </button>
+          </div>
+
+          <div id="other-filter-content" class="collapse show">
+            <div class="form-check mb-3">
+              {{ form.has_images }}
+              <label class="form-check-label" for="{{ form.has_images.id_for_label }}">
+                {% trans "Has Images" %}
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-title">
+            <span>{% trans "Kinks" %}</span>
+            <button type="button" class="filter-collapse-btn" data-bs-toggle="collapse" data-bs-target="#kinks-filter-content">
+              <i class="fas fa-chevron-down"></i>
+            </button>
+          </div>
+
+          <div id="kinks-filter-content" class="collapse show">
+            <div class="mb-3">
+              <label for="{{ form.kinks.id_for_label }}" class="form-label">{% trans "Has Kinks" %}</label>
+              <select id="{{ form.kinks.id_for_label }}" name="kinks" class="form-select kink-select" multiple>
+                {% for category in kink_categories %}
+                  <optgroup label="{{ category.name }}" class="optgroup-header">
+                    {% for kink in category.kinks.all %}
+                      <option value="{{ kink.id }}" {% if kink in form.kinks.value %}selected{% endif %}>
+                        {{ kink.name }}
+                      </option>
+                    {% endfor %}
+                  </optgroup>
+                {% endfor %}
+              </select>
+              <div class="form-text">{% trans "Hold Ctrl/Cmd to select multiple kinks" %}</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.kink_rating.id_for_label }}" class="form-label">{% trans "Kink Rating" %}</label>
+              {{ form.kink_rating }}
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-title">
+            <span>{% trans "Sort By" %}</span>
+            <button type="button" class="filter-collapse-btn" data-bs-toggle="collapse" data-bs-target="#sort-filter-content">
+              <i class="fas fa-chevron-down"></i>
+            </button>
+          </div>
+
+          <div id="sort-filter-content" class="collapse show">
+            {{ form.sort_by }}
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="fas fa-search"></i> {% trans "Search" %}
+        </button>
+      </form>
+    </div>
+
+    <!-- Results -->
+    <div class="search-results">
+      <div class="search-stats">
+        <p>
+          {% if result_count > 0 %}
+            {% blocktrans count counter=result_count %}
+              Found {{ counter }} character
+            {% plural %}
+              Found {{ counter }} characters
+            {% endblocktrans %}
+          {% else %}
+            {% trans "No characters found" %}
+          {% endif %}
+        </p>
+      </div>
+
+      {% if characters %}
+        <div class="character-grid">
+          {% for character in characters %}
+            <div class="character-card">
+              <div class="character-image">
+                {% if character.has_images %}
+                  {% with primary_image=character.get_primary_image %}
+                    <img src="{{ primary_image.image.url }}" alt="{{ character.name }}">
+                  {% endwith %}
+                {% endif %}
+              </div>
+
+              <div class="character-info">
+                <h5 class="character-name">{{ character.name }}</h5>
+
+                <div class="character-details">
+                  {{ character.get_gender_display }} {{ character.species }}
+                  {% if character.age %}
+                    • {% trans "Age" %}: {{ character.age }}
+                  {% endif %}
+                </div>
+
+                <div class="character-action">
+                  <a href="{{ character.get_absolute_url }}" class="btn btn-sm btn-primary">
+                    {% trans "View Profile" %}
+                  </a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if characters.paginator.num_pages > 1 %}
+          <nav aria-label="{% trans 'Character pagination' %}">
+            <ul class="pagination justify-content-center">
+              {% if characters.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">
+                    <i class="fas fa-angle-double-left"></i>
+                  </a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ characters.previous_page_number }}">
+                    <i class="fas fa-angle-left"></i>
+                  </a>
+                </li>
+              {% else %}
+                <li class="page-item disabled">
+                  <span class="page-link">
+                    <i class="fas fa-angle-double-left"></i>
+                  </span>
+                </li>
+                <li class="page-item disabled">
+                  <span class="page-link">
+                    <i class="fas fa-angle-left"></i>
+                  </span>
+                </li>
+              {% endif %}
+
+              <li class="page-item disabled">
+                <span class="page-link">
+                  {% trans "Page" %} {{ characters.number }} {% trans "of" %} {{ characters.paginator.num_pages }}
+                </span>
+              </li>
+
+              {% if characters.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ characters.next_page_number }}">
+                    <i class="fas fa-angle-right"></i>
+                  </a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ characters.paginator.num_pages }}">
+                    <i class="fas fa-angle-double-right"></i>
+                  </a>
+                </li>
+              {% else %}
+                <li class="page-item disabled">
+                  <span class="page-link">
+                    <i class="fas fa-angle-right"></i>
+                  </span>
+                </li>
+                <li class="page-item disabled">
+                  <span class="page-link">
+                    <i class="fas fa-angle-double-right"></i>
+                  </span>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+        {% endif %}
+      {% else %}
+        <div class="empty-results">
+          <div class="empty-results-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3>{% trans "No Characters Found" %}</h3>
+          <p>{% trans "Try adjusting your search filters to find more characters." %}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.getElementById('search-form');
+
+    // Handle filter badge clear buttons
+    const filterBadgeClearBtns = document.querySelectorAll('.filter-badge-clear');
+    filterBadgeClearBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const field = this.dataset.field;
+        const value = this.dataset.value;
+
+        if (field === 'search' || field === 'species' || field === 'kink_rating') {
+          // Clear single value fields
+          const input = searchForm.querySelector(`[name="${field}"]`);
+          input.value = '';
+        } else if (field === 'age') {
+          // Clear both age fields
+          searchForm.querySelector('[name="min_age"]').value = '';
+          searchForm.querySelector('[name="max_age"]').value = '';
+        } else if (field === 'has_images') {
+          // Uncheck checkbox
+          searchForm.querySelector('[name="has_images"]').checked = false;
+        } else if (field === 'gender' || field === 'kinks') {
+          // Uncheck specific value in multi-select
+          const input = searchForm.querySelector(`[name="${field}"][value="${value}"]`);
+          if (input) {
+            input.checked = false;
+          } else if (field === 'kinks') {
+            // Handle kinks select
+            const select = searchForm.querySelector('[name="kinks"]');
+            for (let i = 0; i < select.options.length; i++) {
+              if (select.options[i].value === value) {
+                select.options[i].selected = false;
+                break;
+              }
+            }
+          }
+        }
+
+        // Submit form with updated filters
+        searchForm.submit();
+      });
+    });
+
+    // Handle clear all filters button
+    const clearAllBtn = document.querySelector('.clear-all-filters');
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener('click', function() {
+        window.location.href = '{% url "characters:character_search" %}';
+      });
+    }
+
+    // Toggle filter sections
+    const filterCollapseBtns = document.querySelectorAll('.filter-collapse-btn');
+    filterCollapseBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const icon = this.querySelector('i');
+        icon.classList.toggle('fa-chevron-down');
+        icon.classList.toggle('fa-chevron-up');
+      });
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,686 @@
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Elements
+    const messagesContainer = document.getElementById('chat-messages');
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const characterDropdownToggle = document.getElementById('character-dropdown-toggle');
+    const characterDropdownMenu = document.getElementById('character-dropdown-menu');
+    const selectedCharacterName = document.getElementById('selected-character-name');
+    const characterDropdownItems = document.querySelectorAll('.character-dropdown-item');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const onlineStatus = document.getElementById('online-status');
+
+    // Dice rolling elements
+    const diceRollToggle = document.getElementById('dice-roll-toggle');
+    const diceToolbar = document.getElementById('dice-toolbar');
+    const diceButtons = document.querySelectorAll('.dice-button');
+    const diceFormulaInput = document.getElementById('dice-formula');
+    const privateRollCheckbox = document.getElementById('private-roll');
+    const rollDiceBtn = document.getElementById('roll-dice-btn');
+
+    // Variables
+    let currentCharacterId = '';
+    let currentPage = 1;
+    let hasMoreMessages = true;
+    let isLoadingMessages = false;
+    let lastMessageDate = null;
+    let chatSocket = null;
+    let typingTimeout = null;
+    let lastTypingNotification = 0;
+    let activeUsers = new Set();
+    let reconnectAttempts = 0;
+    let maxReconnectAttempts = 5;
+    let reconnectInterval = 3000; // Start with 3 seconds
+
+    // Connect to WebSocket
+    function connectWebSocket() {
+      const roomId = {{ room.id }};
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+      const wsUrl = `${wsProtocol}${window.location.host}/ws/chat/${roomId}/`;
+
+      chatSocket = new WebSocket(wsUrl);
+
+      // WebSocket event handlers
+      chatSocket.onopen = function(e) {
+        console.log('WebSocket connected');
+        reconnectAttempts = 0;
+        reconnectInterval = 3000;
+
+        // Update connection status
+        updateConnectionStatus(true);
+      };
+
+      chatSocket.onclose = function(e) {
+        console.log('WebSocket disconnected');
+        updateConnectionStatus(false);
+
+        // Try to reconnect with exponential backoff
+        if (reconnectAttempts < maxReconnectAttempts) {
+          reconnectAttempts++;
+          const timeout = reconnectInterval * Math.pow(1.5, reconnectAttempts - 1);
+          console.log(`Reconnecting in ${timeout/1000} seconds...`);
+
+          setTimeout(function() {
+            connectWebSocket();
+          }, timeout);
+
+          // Increase reconnect interval for next attempt
+          reconnectInterval = timeout;
+        } else {
+          console.log('Max reconnect attempts reached. Please refresh the page.');
+          showConnectionError();
+        }
+      };
+
+      chatSocket.onerror = function(e) {
+        console.error('WebSocket error:', e);
+      };
+
+      chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        handleWebSocketMessage(data);
+      };
+    }
+
+    // Handle messages from WebSocket
+    function handleWebSocketMessage(data) {
+      const messageType = data.type;
+
+      if (messageType === 'chat_message') {
+        // New message received
+        addMessage(data);
+
+        // Play sound notification if message is not from current user
+        if (data.sender_id !== {{ request.user.id }}) {
+          playNotificationSound();
+        }
+      } else if (messageType === 'typing') {
+        // User is typing
+        showTypingIndicator(data.username);
+      } else if (messageType === 'read_receipt') {
+        // Message read receipt
+        updateReadStatus(data.message_id);
+      } else if (messageType === 'user_connect') {
+        // User connected
+        activeUsers.add(data.user_id);
+        updateActiveUsersDisplay();
+        console.log(`User ${data.username} connected`);
+      } else if (messageType === 'user_disconnect') {
+        // User disconnected
+        activeUsers.delete(data.user_id);
+        updateActiveUsersDisplay();
+        console.log(`User ${data.username} disconnected`);
+      } else if (messageType === 'dice_roll_result') {
+        // Dice roll result received
+        addDiceRollResult(data);
+
+        // Play sound notification if roll is not from current user
+        if (data.sender_id !== {{ request.user.id }}) {
+          playNotificationSound();
+        }
+      }
+    }
+
+    // Update connection status
+    function updateConnectionStatus(connected) {
+      const statusElement = document.createElement('div');
+      statusElement.classList.add('connection-status');
+
+      if (connected) {
+        statusElement.textContent = '{% trans "Connected" %}';
+        statusElement.classList.add('text-success');
+      } else {
+        statusElement.textContent = '{% trans "Disconnected - Reconnecting..." %}';
+        statusElement.classList.add('text-danger');
+      }
+
+      // Show status briefly then fade out
+      messagesContainer.insertBefore(statusElement, messagesContainer.firstChild);
+      setTimeout(() => {
+        statusElement.style.opacity = '0';
+        setTimeout(() => {
+          if (statusElement.parentNode) {
+            statusElement.parentNode.removeChild(statusElement);
+          }
+        }, 1000);
+      }, 3000);
+    }
+
+    // Show connection error
+    function showConnectionError() {
+      const errorElement = document.createElement('div');
+      errorElement.classList.add('alert', 'alert-danger', 'text-center', 'm-3');
+      errorElement.innerHTML = `
+        {% trans "Connection lost. Please refresh the page." %}
+        <button class="btn btn-sm btn-primary mt-2" onclick="window.location.reload()">
+          {% trans "Refresh Now" %}
+        </button>
+      `;
+
+      messagesContainer.insertBefore(errorElement, messagesContainer.firstChild);
+    }
+
+    // Play notification sound
+    function playNotificationSound() {
+      const audio = new Audio("{% static 'sounds/notification.mp3' %}");
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log('Error playing notification sound:', e));
+    }
+
+    // Update active users display
+    function updateActiveUsersDisplay() {
+      if (activeUsers.size === 0) {
+        onlineStatus.style.display = 'none';
+        return;
+      }
+
+      onlineStatus.style.display = 'block';
+      onlineStatus.innerHTML = `
+        <div class="online-indicator">
+          <span class="dot"></span>
+          <span class="text">
+            ${activeUsers.size} {% trans "user(s) online" %}
+          </span>
+        </div>
+      `;
+    }
+
+    // Toggle character dropdown
+    characterDropdownToggle.addEventListener('click', function() {
+      characterDropdownMenu.classList.toggle('show');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!characterDropdownToggle.contains(event.target) && !characterDropdownMenu.contains(event.target)) {
+        characterDropdownMenu.classList.remove('show');
+      }
+    });
+
+    // Select character
+    characterDropdownItems.forEach(item => {
+      item.addEventListener('click', function() {
+        // Update selected character
+        currentCharacterId = this.dataset.characterId;
+
+        // Update UI
+        characterDropdownItems.forEach(el => el.classList.remove('active'));
+        this.classList.add('active');
+        selectedCharacterName.textContent = this.querySelector('span').textContent;
+
+        // Close dropdown
+        characterDropdownMenu.classList.remove('show');
+      });
+    });
+
+    // Handle form submission
+    messageForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const messageText = messageInput.value.trim();
+      if (!messageText) return;
+
+      sendMessage(messageText, currentCharacterId);
+    });
+
+    // Typing notification
+    messageInput.addEventListener('input', function() {
+      // Auto-resize textarea
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+
+      // Send typing notification, but not too frequently
+      const now = Date.now();
+      if (now - lastTypingNotification > 3000) { // Send at most every 3 seconds
+        sendTypingNotification();
+        lastTypingNotification = now;
+      }
+
+      // Clear previous timeout
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+
+      // Set new timeout
+      typingTimeout = setTimeout(function() {
+        // Clear typing indicator after 3 seconds of inactivity
+        typingIndicator.style.display = 'none';
+      }, 3000);
+    });
+
+    // Load initial messages with AJAX
+    loadMessages();
+
+    // Then connect to WebSocket for new messages
+    connectWebSocket();
+
+    // Scroll to detect when to load more messages
+    messagesContainer.addEventListener('scroll', function() {
+      if (messagesContainer.scrollTop === 0 && hasMoreMessages && !isLoadingMessages) {
+        loadMoreMessages();
+      }
+    });
+
+    // Load messages from the server (initial load only)
+    function loadMessages() {
+      isLoadingMessages = true;
+
+      fetch(`{% url 'messages:messages_api' room.pk %}?page=${currentPage}`)
+        .then(response => response.json())
+        .then(data => {
+          renderMessages(data.messages);
+          hasMoreMessages = data.has_more;
+          isLoadingMessages = false;
+
+          // Add load more button if needed
+          if (hasMoreMessages) {
+            addLoadMoreButton();
+          }
+        })
+        .catch(error => {
+          console.error('Error loading messages:', error);
+          messagesContainer.innerHTML = `
+            <div class="alert alert-danger m-3">
+              {% trans "Error loading messages. Please try again." %}
+            </div>
+          `;
+          isLoadingMessages = false;
+        });
+    }
+
+    // Load more messages (pagination)
+    function loadMoreMessages() {
+      if (!hasMoreMessages || isLoadingMessages) return;
+
+      isLoadingMessages = true;
+      currentPage++;
+
+      // Show loading spinner
+      const loadingEl = document.createElement('div');
+      loadingEl.className = 'text-center my-3';
+      loadingEl.innerHTML = `
+        <div class="spinner-border text-secondary" role="status">
+          <span class="visually-hidden">{% trans "Loading messages..." %}</span>
+        </div>
+      `;
+      messagesContainer.appendChild(loadingEl);
+
+      fetch(`{% url 'messages:messages_api' room.pk %}?page=${currentPage}`)
+        .then(response => response.json())
+        .then(data => {
+          // Remove loading spinner
+          loadingEl.remove();
+
+          // Remove load more button
+          const loadMoreBtn = document.querySelector('.load-more');
+          if (loadMoreBtn) loadMoreBtn.remove();
+
+          // Add messages
+          renderMessages(data.messages, true);
+          hasMoreMessages = data.has_more;
+          isLoadingMessages = false;
+
+          // Add load more button if needed
+          if (hasMoreMessages) {
+            addLoadMoreButton();
+          }
+        })
+        .catch(error => {
+          console.error('Error loading more messages:', error);
+          loadingEl.innerHTML = `
+            <div class="alert alert-danger">
+              {% trans "Error loading messages. Please try again." %}
+            </div>
+          `;
+          isLoadingMessages = false;
+        });
+    }
+
+    // Add load more button
+    function addLoadMoreButton() {
+      const loadMoreEl = document.createElement('div');
+      loadMoreEl.className = 'load-more';
+      loadMoreEl.innerHTML = `
+        <button class="btn btn-sm btn-outline-secondary" id="load-more-btn">
+          {% trans "Load older messages" %}
+        </button>
+      `;
+      messagesContainer.appendChild(loadMoreEl);
+
+      // Add event listener
+      document.getElementById('load-more-btn').addEventListener('click', loadMoreMessages);
+    }
+
+    // Render messages from initial load
+    function renderMessages(messages, append = false) {
+      if (!append) {
+        // Clear messages container (but keep typing indicator)
+        while (messagesContainer.childNodes.length > 1) {
+          messagesContainer.removeChild(messagesContainer.lastChild);
+        }
+      }
+
+      if (messages.length === 0) {
+        messagesContainer.innerHTML = `
+          <div class="text-center text-muted my-5">
+            <p>{% trans "No messages yet. Start the conversation!" %}</p>
+          </div>
+        `;
+        return;
+      }
+
+      let lastDate = null;
+
+      messages.forEach(message => {
+        // Add message to UI
+        addMessageToUI(message, lastDate);
+        lastDate = new Date(message.created_at).toLocaleDateString();
+      });
+    }
+
+    // Add a single message to UI
+    function addMessageToUI(message, lastDate = null) {
+      // Check if we need to add a date divider
+      const messageDate = new Date(message.created_at).toLocaleDateString();
+      if (lastDate !== messageDate) {
+        const dateDivider = document.createElement('div');
+        dateDivider.className = 'message-date-divider';
+        dateDivider.innerHTML = `<span class="message-date">${messageDate}</span>`;
+        messagesContainer.appendChild(dateDivider);
+      }
+
+      // Create message element
+      const messageEl = document.createElement('div');
+      messageEl.className = `chat-message ${message.is_self ? 'self' : ''}`;
+      messageEl.setAttribute('data-message-id', message.id);
+
+      // Get avatar
+      let avatarContent;
+      if (message.character) {
+        if (message.character.image) {
+          avatarContent = `<img src="${message.character.image}" alt="${message.character.name}" class="message-avatar">`;
+        } else {
+          avatarContent = `<div class="message-avatar">${message.character.name.charAt(0)}</div>`;
+        }
+      } else {
+        avatarContent = `<div class="message-avatar">${message.sender_username.charAt(0)}</div>`;
+      }
+
+      // Create message HTML
+      messageEl.innerHTML = `
+        ${avatarContent}
+        <div class="message-content">
+          <div class="message-author">
+            ${message.character ? message.character.name : (message.is_self ? '{% trans "You" %}' : message.sender_username)}
+          </div>
+          <div class="message-text">
+            ${message.message}
+          </div>
+          ${message.character && !message.is_self ? `<div class="message-character">(${message.sender_username})</div>` : ''}
+          <div class="message-time">
+            ${new Date(message.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+          </div>
+          ${message.is_self ? `
+            <div class="message-status">
+              <i class="fas fa-${message.read ? 'check-double' : 'check'} ${message.read ? 'text-primary' : ''}"></i>
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      messagesContainer.appendChild(messageEl);
+
+      // Mark message as read if it's not from current user
+      if (!message.is_self && !message.read) {
+        sendReadReceipt(message.id);
+      }
+
+      return messageDate;
+    }
+
+    // Add new message received via WebSocket
+    function addMessage(data) {
+      // Format message for UI
+      const message = {
+        id: data.message_id,
+        message: data.message,
+        sender_username: data.sender_username,
+        is_self: data.sender_id === {{ request.user.id }},
+        character: data.character,
+        created_at: data.timestamp,
+        read: false,
+      };
+
+      // Add message to UI
+      lastMessageDate = addMessageToUI(message, lastMessageDate);
+
+      // Auto-scroll to bottom for new messages
+      messagesContainer.scrollTop = 0;
+
+      // Mark message as read if it's not from current user
+      if (!message.is_self) {
+        sendReadReceipt(message.id);
+      }
+
+      // Clear typing indicator
+      typingIndicator.style.display = 'none';
+    }
+
+    // Add dice roll result received via WebSocket
+    function addDiceRollResult(data) {
+      // Check if we need to add a date divider
+      const rollDate = new Date(data.timestamp).toLocaleDateString();
+      if (lastMessageDate !== rollDate) {
+        const dateDivider = document.createElement('div');
+        dateDivider.className = 'message-date-divider';
+        dateDivider.innerHTML = `<span class="message-date">${rollDate}</span>`;
+        messagesContainer.appendChild(dateDivider);
+        lastMessageDate = rollDate;
+      }
+
+      // Create message element
+      const messageEl = document.createElement('div');
+      messageEl.className = `chat-message ${data.sender_id === {{ request.user.id }} ? 'self' : ''}`;
+      messageEl.setAttribute('data-roll-id', data.roll_id);
+
+      // Get avatar
+      let avatarContent;
+      if (data.character) {
+        if (data.character.image) {
+          avatarContent = `<img src="${data.character.image}" alt="${data.character.name}" class="message-avatar">`;
+        } else {
+          avatarContent = `<div class="message-avatar">${data.character.name.charAt(0)}</div>`;
+        }
+      } else {
+        avatarContent = `<div class="message-avatar">${data.sender_username.charAt(0)}</div>`;
+      }
+
+      // Format dice results for display
+      const rollResults = data.result.rolls.map(roll => {
+        return `<div class="dice-result d${roll.sides}">${roll.value}</div>`;
+      }).join('');
+
+      const modifierDisplay = data.result.modifiers !== 0
+        ? `<span class="dice-modifier">${data.result.modifiers >= 0 ? '+' + data.result.modifiers : data.result.modifiers}</span>`
+        : '';
+
+      // Create message HTML
+      messageEl.innerHTML = `
+        ${avatarContent}
+        <div class="message-content">
+          <div class="message-author">
+            ${data.character ? data.character.name : (data.sender_id === {{ request.user.id }} ? '{% trans "You" %}' : data.sender_username)}
+            <i class="fas fa-dice ml-1"></i>
+            ${data.is_private ? '<span class="dice-private-label">{% trans "Private Roll" %}</span>' : ''}
+          </div>
+          <div class="dice-roll-content">
+            <div class="dice-roll-formula">${data.formula}</div>
+            <div class="dice-results">
+              ${rollResults}
+              ${modifierDisplay}
+              <span class="dice-total">${data.total}</span>
+            </div>
+          </div>
+          ${data.character && data.sender_id !== {{ request.user.id }} ? `<div class="message-character">(${data.sender_username})</div>` : ''}
+          <div class="message-time">
+            ${new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+          </div>
+        </div>
+      `;
+
+      messagesContainer.appendChild(messageEl);
+
+      // Auto-scroll to bottom for new dice rolls
+      messagesContainer.scrollTop = 0;
+    }
+
+    // Send a message via WebSocket
+    function sendMessage(text, characterId) {
+      if (!chatSocket || chatSocket.readyState !== WebSocket.OPEN) {
+        showConnectionError();
+        return;
+      }
+
+      // Prepare message data
+      const messageData = {
+        type: 'chat_message',
+        message: text,
+      };
+
+      if (characterId) {
+        messageData.character_id = characterId;
+      }
+
+      // Send message
+      chatSocket.send(JSON.stringify(messageData));
+
+      // Clear input
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+
+      // Remove empty message indicator if present
+      const emptyMessage = messagesContainer.querySelector('.text-center.text-muted');
+      if (emptyMessage) {
+        emptyMessage.remove();
+      }
+    }
+
+    // Send a dice roll via WebSocket
+    function sendDiceRoll(formula, isPrivate) {
+      if (!chatSocket || chatSocket.readyState !== WebSocket.OPEN) {
+        showConnectionError();
+        return;
+      }
+
+      // Check if formula is valid
+      const dicePattern = /^(\d*d\d+([+-]\d+)*)([+-]\d*d\d+)*$/i;
+      if (!dicePattern.test(formula)) {
+        alert('{% trans "Invalid dice formula. Please use format like d20, 2d6+3, etc." %}');
+        return;
+      }
+
+      // Prepare dice roll data
+      const rollData = {
+        type: 'dice_roll',
+        formula: formula,
+        is_private: isPrivate
+      };
+
+      if (currentCharacterId) {
+        rollData.character_id = currentCharacterId;
+      }
+
+      // Send dice roll
+      chatSocket.send(JSON.stringify(rollData));
+
+      // Clear formula input
+      diceFormulaInput.value = '';
+    }
+
+    // Send typing notification via WebSocket
+    function sendTypingNotification() {
+      if (!chatSocket || chatSocket.readyState !== WebSocket.OPEN) return;
+
+      chatSocket.send(JSON.stringify({
+        type: 'typing'
+      }));
+    }
+
+    // Show typing indicator
+    function showTypingIndicator(username) {
+      // Don't show if it's your own notification
+      if (username === '{{ request.user.username }}') return;
+
+      typingIndicator.textContent = `${username} {% trans "is typing..." %}`;
+      typingIndicator.style.display = 'block';
+    }
+
+    // Send read receipt via WebSocket
+    function sendReadReceipt(messageId) {
+      if (!chatSocket || chatSocket.readyState !== WebSocket.OPEN) return;
+
+      chatSocket.send(JSON.stringify({
+        type: 'read_message',
+        message_id: messageId
+      }));
+    }
+
+    // Update message read status
+    function updateReadStatus(messageId) {
+      const messageEl = document.querySelector(`.chat-message[data-message-id="${messageId}"]`);
+      if (messageEl && messageEl.classList.contains('self')) {
+        const statusEl = messageEl.querySelector('.message-status i');
+        if (statusEl) {
+          statusEl.className = 'fas fa-check-double text-primary';
+        }
+      }
+    }
+
+    // Dice rolling UI functionality
+
+    // Toggle dice toolbar
+    diceRollToggle.addEventListener('click', function() {
+      diceToolbar.style.display = diceToolbar.style.display === 'none' ? 'flex' : 'none';
+    });
+
+    // Handle dice buttons clicks
+    diceButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const diceType = this.dataset.dice;
+        diceFormulaInput.value = diceType;
+      });
+    });
+
+    // Handle roll dice button click
+    rollDiceBtn.addEventListener('click', function() {
+      const formula = diceFormulaInput.value.trim();
+      if (!formula) return;
+
+      const isPrivate = privateRollCheckbox.checked;
+      sendDiceRoll(formula, isPrivate);
+    });
+
+    // Allow pressing Enter in formula input to roll dice
+    diceFormulaInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const formula = diceFormulaInput.value.trim();
+        if (!formula) return;
+
+        const isPrivate = privateRollCheckbox.checked;
+        sendDiceRoll(formula, isPrivate);
+      }
+    });
+
+    // Clean up when leaving the page
+    window.addEventListener('beforeunload', function() {
+      if (chatSocket) {
+        chatSocket.close();
+      }
+    });
+  });
+</script>
+{% endblock %}

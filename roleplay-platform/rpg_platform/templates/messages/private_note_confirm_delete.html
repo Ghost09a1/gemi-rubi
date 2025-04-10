@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Note" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            {% if room %}
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'messages:room_detail' room.pk %}">{{ room.name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'messages:private_note_list_room' room.pk %}">{% trans "Private Notes" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{% trans "Delete Note" %}</li>
+                    </ol>
+                </nav>
+            {% elif object.chat_room %}
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'messages:room_detail' object.chat_room.pk %}">{{ object.chat_room.name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'messages:private_note_list_room' object.chat_room.pk %}">{% trans "Private Notes" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{% trans "Delete Note" %}</li>
+                    </ol>
+                </nav>
+            {% else %}
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'messages:private_note_list' %}">{% trans "Private Notes" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{% trans "Delete Note" %}</li>
+                    </ol>
+                </nav>
+            {% endif %}
+
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="h4 m-0">{% trans "Confirm Deletion" %}</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="h5 mb-3">{% trans "Are you sure you want to delete this private note?" %}</h3>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4 class="h6 m-0">{{ object.title }}</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="note-content">
+                                {{ object.content|linebreaks }}
+                            </div>
+                            <div class="small text-muted mt-3">
+                                {% trans "Created" %}: {{ object.created_at|date:"SHORT_DATETIME_FORMAT" }}
+                                <br>
+                                {% trans "Last updated" %}: {{ object.updated_at|date:"SHORT_DATETIME_FORMAT" }}
+                            </div>
+                        </div>
+                        {% if object.chat_room %}
+                            <div class="card-footer">
+                                <span class="badge bg-info">{{ object.chat_room.name }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% trans "This action cannot be undone." %}
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex">
+                            <button type="submit" class="btn btn-danger me-2">
+                                <i class="fas fa-trash me-1"></i> {% trans "Yes, Delete" %}
+                            </button>
+
+                            {% if object.chat_room %}
+                                <a href="{% url 'messages:private_note_list_room' object.chat_room.pk %}" class="btn btn-outline-secondary">
+                                    {% trans "Cancel" %}
+                                </a>
+                            {% else %}
+                                <a href="{% url 'messages:private_note_list' %}" class="btn btn-outline-secondary">
+                                    {% trans "Cancel" %}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

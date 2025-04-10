@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Edit Profile" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-form-container {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .form-section {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-section h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .form-preview {
+    margin-bottom: 1rem;
+  }
+
+  .avatar-preview {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .avatar-field-container {
+    position: relative;
+  }
+
+  .avatar-field-container .form-control {
+    padding-left: 3rem;
+  }
+
+  .avatar-field-icon {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.75rem;
+    font-size: 1.5rem;
+    color: #6c757d;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="profile-form-container">
+    <h1>{% trans "Edit Profile" %}</h1>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <!-- Basic Information -->
+      <div class="form-section">
+        <h3>{% trans "Basic Information" %}</h3>
+
+        <!-- Avatar Preview -->
+        <div class="text-center form-preview">
+          <img src="{{ object.get_avatar_url }}" alt="{{ object.get_display_name }}" class="avatar-preview" id="avatar-preview">
+        </div>
+
+        <!-- Avatar Field -->
+        <div class="mb-3">
+          <label for="{{ form.avatar.id_for_label }}" class="form-label">{% trans "Profile Picture" %}</label>
+          <div class="avatar-field-container">
+            <i class="fas fa-camera avatar-field-icon"></i>
+            {{ form.avatar }}
+          </div>
+          {% if form.avatar.errors %}
+            <div class="invalid-feedback d-block">
+              {% for error in form.avatar.errors %}
+                {{ error }}
+              {% endfor %}
+            </div>
+          {% endif %}
+          <div class="form-text">{% trans "Upload a JPG, PNG or GIF image (max 5MB)." %}</div>
+        </div>
+
+        <!-- Display Name -->
+        <div class="mb-3">
+          <label for="{{ form.display_name.id_for_label }}" class="form-label">{% trans "Display Name" %}</label>
+          {{ form.display_name }}
+          {% if form.display_name.errors %}
+            <div class="invalid-feedback d-block">
+              {% for error in form.display_name.errors %}
+                {{ error }}
+              {% endfor %}
+            </div>
+          {% endif %}
+          <div class="form-text">{% trans "Leave blank to use your username." %}</div>
+        </div>
+
+        <!-- Location -->
+        <div class="mb-3">
+          <label for="{{ form.location.id_for_label }}" class="form-label">{% trans "Location" %}</label>
+          {{ form.location }}
+          {% if form.location.errors %}
+            <div class="invalid-feedback d-block">
+              {% for error in form.location.errors %}
+                {{ error }}
+              {% endfor %}
+            </div>
+          {% endif %}
+          <div class="form-text">{% trans "Optional - Your city, country, or whatever you're comfortable sharing." %}</div>
+        </div>
+
+        <!-- Bio -->
+        <div class="mb-3">
+          <label for="{{ form.bio.id_for_label }}" class="form-label">{% trans "Bio" %}</label>
+          {{ form.bio }}
+          {% if form.bio.errors %}
+            <div class="invalid-feedback d-block">
+              {% for error in form.bio.errors %}
+                {{ error }}
+              {% endfor %}
+            </div>
+          {% endif %}
+          <div class="form-text">{% trans "Optional - Tell others about yourself." %}</div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <a href="{% url 'accounts:profile_detail' username=user.username %}" class="btn btn-secondary">
+          {% trans "Cancel" %}
+        </a>
+        <button type="submit" class="btn btn-primary">
+          {% trans "Save Profile" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Preview avatar image when a new file is selected
+    const avatarInput = document.getElementById('{{ form.avatar.id_for_label }}');
+    const avatarPreview = document.getElementById('avatar-preview');
+
+    if (avatarInput && avatarPreview) {
+      avatarInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+          const reader = new FileReader();
+
+          reader.onload = function(e) {
+            avatarPreview.src = e.target.result;
+          };
+
+          reader.readAsDataURL(this.files[0]);
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}
