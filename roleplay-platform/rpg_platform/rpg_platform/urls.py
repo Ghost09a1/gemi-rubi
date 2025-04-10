@@ -4,21 +4,20 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
 from django.contrib.auth.decorators import login_required
-from rpg_platform.apps.messages.views import ChatMessageCreateView  # ✅
 
 urlpatterns = [
-    path('admin/', admin.site.urls), 
+    path('admin/', admin.site.urls),
 
     # Include dashboard app
     path('dashboard/', include('rpg_platform.apps.dashboard.urls', namespace='dashboard')),
-    
+
 
     # Account management
     path('accounts/', include('rpg_platform.apps.accounts.urls')),
 
     # Feature-specific URLs
     path('characters/', include('rpg_platform.apps.characters.urls')),
-    path('messages/', include('rpg_platform.apps.messages.urls', namespace='messages')), 
+    path('messages/', include('rpg_platform.apps.messages.urls', namespace='messages')),
     path('notifications/', include('rpg_platform.apps.notifications.urls')),
     path('moderation/', include('rpg_platform.apps.moderation.urls')),
     path('recommendations/', include('rpg_platform.apps.recommendations.urls')),

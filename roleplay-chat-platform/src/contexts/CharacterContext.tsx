@@ -358,31 +358,31 @@ export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ child
     setError(null);
   };
 
+  const contextValue = {
+    userCharacters,
+    currentCharacter,
+    characterImages,
+    isLoading,
+    error,
+
+    loadUserCharacters,
+    getCharacter,
+    createCharacter,
+    updateCharacter,
+    deleteCharacter,
+
+    loadCharacterImages,
+    uploadImage,
+    deleteImage,
+    setImageAsPrimary,
+    reorderImages,
+
+    setCurrentCharacter,
+    clearError,
+  };
+
   return (
-    <CharacterContext.Provider
-      value={{
-        userCharacters,
-        currentCharacter,
-        characterImages,
-        isLoading,
-        error,
-
-        loadUserCharacters,
-        getCharacter,
-        createCharacter,
-        updateCharacter,
-        deleteCharacter,
-
-        loadCharacterImages,
-        uploadImage,
-        deleteImage,
-        setImageAsPrimary,
-        reorderImages,
-
-        setCurrentCharacter,
-        clearError,
-      }}
-    >
+    <CharacterContext.Provider value={contextValue}>
       {children}
     </CharacterContext.Provider>
   );

@@ -1,13 +1,13 @@
 from django import template
-from django.template.defaultfilters import floatformat
+from django.template.defaultfilters import floatformat, stringfilter
 from django.utils.safestring import mark_safe
 
 register = template.Library()
 
 @register.filter
 def get_item(dictionary, key):
-    """Get an item from a dictionary by key"""
-    return dictionary.get(key, '')
+    """Get an item from a dictionary using the key"""
+    return dictionary.get(key, None)
 
 @register.filter
 def display_score(value, max_value=5):

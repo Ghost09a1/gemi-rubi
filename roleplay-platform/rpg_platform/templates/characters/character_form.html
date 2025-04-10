@@ -10,6 +10,9 @@
 {% endblock %}
 
 {% block extra_css %}
+<!-- Include the debug script -->
+<script src="{% static 'js/debug.js' %}"></script>
+
 <style>
   .form-section {
     margin-bottom: 2rem;
@@ -133,8 +136,9 @@
           </div>
         </div>
       </div>
+
       <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-12">
           <div class="mb-3">
             <label for="{{ form.current_mood.id_for_label }}" class="form-label">{{ form.current_mood.label }}</label>
             {{ form.current_mood|add_class:'form-control' }}
@@ -144,10 +148,9 @@
       </div>
 
       <div class="mb-3">
-          <label for="{{ form.custom_status.id_for_label }}" class="form-label">{{ form.custom_status.label }}</label>
-          {{ form.custom_status|add_class:'form-select'|attr:'required' }}
-          <div class="invalid-feedback"></div>
-      </div>
+        <label for="{{ form.custom_status.id_for_label }}" class="form-label">{{ form.custom_status.label }}</label>
+        {{ form.custom_status|add_class:'form-control' }}
+        <div class="invalid-feedback"></div>
       </div>
 
       <div class="form-check mb-3">
@@ -183,17 +186,17 @@
       <h3>{% trans "More Description" %}</h3>
       <div class="mb-3">
         <label for="{{ form.appearance.id_for_label }}" class="form-label">{{ form.appearance.label }}</label>
-        {{ form.appearance }}
+        {{ form.appearance|add_class:'form-control' }}
       </div>
 
       <div class="mb-3">
         <label for="{{ form.personality.id_for_label }}" class="form-label">{{ form.personality.label }}</label>
-        {{ form.personality }}
+        {{ form.personality|add_class:'form-control' }}
       </div>
 
       <div class="mb-3">
         <label for="{{ form.background.id_for_label }}" class="form-label">{{ form.background.label }}</label>
-        {{ form.background }}
+        {{ form.background|add_class:'form-control' }}
       </div>
     </div>
 
@@ -203,7 +206,7 @@
 
       <div class="mb-3">
         <label for="{{ form.private_details.id_for_label }}" class="form-label">{{ form.private_details.label }}</label>
-        {{ form.private_details }}
+        {{ form.private_details|add_class:'form-control' }}
         <div class="form-text">{{ form.private_details.help_text }}</div>
       </div>
     </div>
@@ -211,7 +214,6 @@
     <div class="d-flex justify-content-between mt-4">
       <a href="{% url 'accounts:profile_detail' username=request.user.username %}" class="btn btn-secondary">
         {% trans "Cancel" %}
-        <div class="invalid-feedback"></div>
       </a>
       <button type="submit" class="btn btn-primary" id="submit-button">
         {% if form.instance.pk %}
@@ -224,81 +226,146 @@
 
 {% block extra_js %}
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form');
+  // Wrap all code in an IIFE to avoid global namespace pollution
+  (function() {
+    // Wait for DOM to be ready
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        // Find the form element
+        const form = document.querySelector('form');
 
-    form.addEventListener('submit', function(event) {
-        // Remove existing validation feedback
-        form.querySelectorAll('.invalid-feedback').forEach(e => e.textContent = '');
+        // Check if the form exists before adding event listeners
+        if (form) {
+          // Form submission handler
+          form.addEventListener('submit', function(event) {
+            try {
+              // Remove existing validation feedback
+              const feedbackElements = form.querySelectorAll('.invalid-feedback');
+              feedbackElements.forEach(function(element) {
+                element.textContent = '';
+              });
 
-        let isValid = true;
+              let isValid = true;
 
-        // Required fields validation
-        const requiredFields = form.querySelectorAll('[required]');
-        requiredFields.forEach(field => {
-          if (field.value.trim() === '') {
-            isValid = false;
-            field.classList.add('is-invalid');
-            field.nextElementSibling.textContent = 'This field is required.';
-          } else if (field.name === 'name' && field.value.length > 50){
-            isValid = false;
-            field.classList.add('is-invalid');
-            field.nextElementSibling.textContent = 'This field must have 50 characters max.';
-          }else {
-            field.classList.remove('is-invalid');
-          }
-        });
-
-        const descriptionField = form.querySelector('#id_description');
-        if (descriptionField) {
-          const descriptionValue = descriptionField.value.trim();
-          if (descriptionValue.length < 100 || descriptionValue.length > 1000) {
-            isValid = false;
-            descriptionField.classList.add('is-invalid');
-            if (descriptionValue.length < 100) {
-                descriptionField.nextElementSibling.textContent = 'This field must have 100 characters min.';
-            } else {
-                descriptionField.nextElementSibling.textContent = 'This field must have 1000 characters max.';
-            }
-          } else {
-            descriptionField.classList.remove('is-invalid');
-        }
-      });
-
-      if (!isValid) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-
-
-        form.querySelectorAll('input, select, textarea').forEach(field => {
-            if(field.hasAttribute('required') || field.id === 'id_description'){
-                field.addEventListener('input', function() {
-                    field.classList.remove('is-invalid');
-                    field.nextElementSibling.textContent = '';
-                    if (field.id === 'id_name' && field.value.length > 50) {
-                        field.classList.add('is-invalid');
-                        field.nextElementSibling.textContent = 'This field must have 50 characters max.';
-                    } else if (field.id === 'id_description') {
-                        const descriptionValue = field.value.trim();
-                        if (descriptionValue.length < 100 || descriptionValue.length > 1000) {
-                            field.classList.add('is-invalid');
-                            if (descriptionValue.length < 100) {
-                                field.nextElementSibling.textContent = 'This field must have 100 characters min.';
-                            } else {
-                                field.nextElementSibling.textContent = 'This field must have 1000 characters max.';
-                            }
-                        } else {
-                            field.classList.remove('is-invalid');
-                            field.nextElementSibling.textContent = '';
-                        }
-                    } else if (field.hasAttribute('required') && field.value.trim() === '') {
-                        field.classList.add('is-invalid');
-                        field.nextElementSibling.textContent = 'This field is required.';
+              // Required fields validation
+              const requiredFields = form.querySelectorAll('[required]');
+              requiredFields.forEach(function(field) {
+                try {
+                  if (field.value.trim() === '') {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                    const feedback = field.nextElementSibling;
+                    if (feedback && feedback.classList.contains('invalid-feedback')) {
+                      feedback.textContent = 'This field is required.';
                     }
+                  } else if (field.name === 'name' && field.value.length > 50) {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                    const feedback = field.nextElementSibling;
+                    if (feedback && feedback.classList.contains('invalid-feedback')) {
+                      feedback.textContent = 'This field must have 50 characters max.';
+                    }
+                  } else {
+                    field.classList.remove('is-invalid');
+                  }
+                } catch (fieldError) {
+                  console.error('Error validating field:', fieldError);
+                }
+              });
+
+              // Description field validation
+              try {
+                const descriptionField = form.querySelector('#id_description');
+                if (descriptionField) {
+                  const descriptionValue = descriptionField.value.trim();
+                  if (descriptionValue.length < 100 || descriptionValue.length > 1000) {
+                    isValid = false;
+                    descriptionField.classList.add('is-invalid');
+                    const feedback = descriptionField.nextElementSibling;
+                    if (feedback && feedback.classList.contains('invalid-feedback')) {
+                      if (descriptionValue.length < 100) {
+                        feedback.textContent = 'This field must have 100 characters min.';
+                      } else {
+                        feedback.textContent = 'This field must have 1000 characters max.';
+                      }
+                    }
+                  } else {
+                    descriptionField.classList.remove('is-invalid');
+                  }
+                }
+              } catch (descError) {
+                console.error('Error validating description:', descError);
+              }
+
+              // Prevent form submission if validation fails
+              if (!isValid) {
+                event.preventDefault();
+                event.stopPropagation();
+              }
+            } catch (submitError) {
+              console.error('Error in form submission handler:', submitError);
+            }
+          });
+
+          // Add input event listeners to fields
+          try {
+            const formFields = form.querySelectorAll('input, select, textarea');
+            formFields.forEach(function(field) {
+              if (field.hasAttribute('required') || field.id === 'id_description') {
+                field.addEventListener('input', function() {
+                  try {
+                    field.classList.remove('is-invalid');
+                    const feedback = field.nextElementSibling;
+                    if (feedback && feedback.classList.contains('invalid-feedback')) {
+                      feedback.textContent = '';
+                    }
+
+                    if (field.id === 'id_name' && field.value.length > 50) {
+                      field.classList.add('is-invalid');
+                      const feedback = field.nextElementSibling;
+                      if (feedback && feedback.classList.contains('invalid-feedback')) {
+                        feedback.textContent = 'This field must have 50 characters max.';
+                      }
+                    } else if (field.id === 'id_description') {
+                      const descriptionValue = field.value.trim();
+                      if (descriptionValue.length < 100 || descriptionValue.length > 1000) {
+                        field.classList.add('is-invalid');
+                        const feedback = field.nextElementSibling;
+                        if (feedback && feedback.classList.contains('invalid-feedback')) {
+                          if (descriptionValue.length < 100) {
+                            feedback.textContent = 'This field must have 100 characters min.';
+                          } else {
+                            feedback.textContent = 'This field must have 1000 characters max.';
+                          }
+                        }
+                      } else {
+                        field.classList.remove('is-invalid');
+                        const feedback = field.nextElementSibling;
+                        if (feedback && feedback.classList.contains('invalid-feedback')) {
+                          feedback.textContent = '';
+                        }
+                      }
+                    } else if (field.hasAttribute('required') && field.value.trim() === '') {
+                      field.classList.add('is-invalid');
+                      const feedback = field.nextElementSibling;
+                      if (feedback && feedback.classList.contains('invalid-feedback')) {
+                        feedback.textContent = 'This field is required.';
+                      }
+                    }
+                  } catch (inputError) {
+                    console.error('Error in input handler:', inputError);
+                  }
                 });
-      });
+              }
+            });
+          } catch (fieldsError) {
+            console.error('Error setting up field validators:', fieldsError);
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing form validation:', error);
+      }
     });
-  });
+  })();
 </script>
 {% endblock %}

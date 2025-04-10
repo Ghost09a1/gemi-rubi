@@ -1,6 +1,6 @@
-# RoleplayHub Frontend
+# RoleplayHub - Next.js Frontend
 
-This is the Next.js frontend for the RoleplayHub platform, providing a modern, responsive UI for the text-based roleplay experience.
+This is the Next.js frontend for the RoleplayHub platform, a character-based roleplay platform built with modern web technologies.
 
 ## Features
 
@@ -10,6 +10,12 @@ This is the Next.js frontend for the RoleplayHub platform, providing a modern, r
 - **Character Management**: Create and manage roleplay characters
 - **Advanced Formatting**: Rich text formatting for immersive storytelling
 - **Theme Support**: Light and dark modes for comfortable reading
+- Character creation and management
+- Character search and browsing
+- Profile customization
+- Real-time chat messaging
+- Advanced preferences system
+- User authentication
 
 ## Technologies Used
 
@@ -20,6 +26,20 @@ This is the Next.js frontend for the RoleplayHub platform, providing a modern, r
 - **WebSockets**: Real-time communication
 
 ## Getting Started
+
+First, install dependencies:
+
+```bash
+bun install
+```
+
+Then, run the development server:
+
+```bash
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ### Prerequisites
 
@@ -58,18 +78,14 @@ This is the Next.js frontend for the RoleplayHub platform, providing a modern, r
 
 ### Project Structure
 
-```
-src/
-├── app/                  # App router pages and layouts
-├── components/           # React components
-│   ├── ui/               # Base UI components
-│   ├── chat/             # Chat-related components
-│   └── characters/       # Character-related components
-├── lib/                  # Utility functions and hooks
-├── types/                # TypeScript type definitions
-├── context/              # React context providers
-└── api/                  # API communication
-```
+This project follows the standard Next.js app router directory structure:
+
+- `/src/app` - Main application routes and pages
+- `/src/components` - Reusable React components
+- `/src/contexts` - Context providers for global state
+- `/src/services` - Service layer for API interactions
+- `/src/lib` - Utility functions and shared code
+- `/src/types` - TypeScript interfaces and type definitions
 
 ### Building for Production
 
@@ -87,16 +103,84 @@ npm run lint
 bun lint
 ```
 
-## Contributing
+## Troubleshooting Syntax Errors
 
-1. Ensure you have [Biome](https://biomejs.dev/) installed
-2. Format code before committing:
-   ```bash
-   npx @biomejs/biome format --write ./src
+This project includes several tools to help identify and fix JavaScript syntax errors, especially those related to missing closing parentheses, brackets, or quotes.
+
+### Using the Syntax Error Detector
+
+The `SyntaxErrorDetector` component is automatically included in development mode. You can manually trigger a scan from the browser console with:
+
+```js
+// Scan the entire page
+window.scanPageForSyntaxErrors()
+
+// Scan a specific element
+window.scanElementForSyntaxErrors('elementId')
+```
+
+### Using the Error Handler
+
+The app includes an enhanced error handler that provides detailed information about syntax errors in the console. When a "missing ) after argument list" or similar error occurs, check your browser console for details about the file, line number, and error type.
+
+### Scanning the Codebase for Errors
+
+You can run a static code analysis to find potential syntax errors using the included script:
+
+```bash
+node roleplay-chat-platform/find-syntax-errors.js src
+```
+
+This will scan all TypeScript and React files in the src directory and report potential issues.
+
+### Common JavaScript Syntax Errors
+
+Here are some common syntax errors to look out for:
+
+1. **Unclosed Parentheses** - Missing closing parenthesis in function calls or JSX attributes
+   ```jsx
+   // Incorrect
+   onClick={() => handleClick(
+
+   // Correct
+   onClick={() => handleClick()}
    ```
-3. Make sure linting passes:
-   ```bash
-   npx @biomejs/biome check ./src
+
+2. **Unclosed JSX Tags** - Forgetting to close a JSX element
+   ```jsx
+   // Incorrect
+   <div>
+     <p>Hello
+   </div>
+
+   // Correct
+   <div>
+     <p>Hello</p>
+   </div>
+   ```
+
+3. **Missing Commas in Objects** - Forgetting commas between object properties
+   ```js
+   // Incorrect
+   const obj = {
+     prop1: 'value1'
+     prop2: 'value2'
+   }
+
+   // Correct
+   const obj = {
+     prop1: 'value1',
+     prop2: 'value2'
+   }
+   ```
+
+4. **Template Literal Errors** - Unclosed backticks in template literals
+   ```js
+   // Incorrect
+   const message = `Hello ${name}
+
+   // Correct
+   const message = `Hello ${name}`
    ```
 
 ## API Integration

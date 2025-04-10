@@ -254,6 +254,12 @@ class FriendRequest(models.Model):
     """
     Friend request from one user to another
     """
+    STATUS_CHOICES = [
+        ('pending', _('Pending')),
+        ('accepted', _('Accepted')),
+        ('rejected', _('Rejected')),
+    ]
+
     from_user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -268,6 +274,12 @@ class FriendRequest(models.Model):
     )
     message = models.TextField(_('Message'), blank=True)
     created_at = models.DateTimeField(_('Created At'), auto_now_add=True)
+    status = models.CharField(
+        _('Status'),
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
 
     class Meta:
         verbose_name = _('Friend Request')
@@ -276,22 +288,6 @@ class FriendRequest(models.Model):
 
     def __str__(self):
         return f"{self.from_user.username} → {self.to_user.username}"
-
-    def accept(self):
-        """Accept the friend request and create friendship"""
-        Friendship.objects.create(
-            user=self.from_user,
-            friend=self.to_user
-        )
-        Friendship.objects.create(
-            user=self.to_user,
-            friend=self.from_user
-        )
-        self.delete()
-
-    def reject(self):
-        """Reject the friend request"""
-        self.delete()
 
 
 class Friendship(models.Model):

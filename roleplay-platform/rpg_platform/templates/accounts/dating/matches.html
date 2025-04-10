@@ -1,0 +1,415 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Your Matches" %} | RoleplayHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .match-card {
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s, box-shadow 0.3s;
+        height: 100%;
+    }
+
+    .match-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .match-header {
+        height: 180px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+    }
+
+    .match-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 4px solid white;
+        position: absolute;
+        bottom: -50px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .match-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .match-info {
+        padding: 60px 20px 20px;
+        text-align: center;
+    }
+
+    .match-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .match-description {
+        color: #6c757d;
+        margin-bottom: 20px;
+        height: 60px;
+        overflow: hidden;
+    }
+
+    .match-meta {
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .match-meta-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .match-meta-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+
+    .match-meta-value {
+        font-weight: 600;
+    }
+
+    .match-score {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        padding: 5px 10px;
+        font-weight: bold;
+        color: #6246ea;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 50px 0;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+    }
+
+    .filter-bar {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{% trans "Your Matches" %}</h1>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchInput" placeholder="{% trans 'Search matches...' %}">
+                    <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-md-end mt-3 mt-md-0">
+                    <div class="me-2">
+                        <select class="form-select" id="sortSelect">
+                            <option value="match">{% trans "Match %" %}</option>
+                            <option value="recent">{% trans "Most Recent" %}</option>
+                            <option value="name">{% trans "Name" %}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-primary" id="filterButton" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                            <i class="fas fa-filter"></i> {% trans "Filters" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="collapse mt-3" id="filterCollapse">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">{% trans "Gender" %}</label>
+                    <select class="form-select" id="genderFilter">
+                        <option value="">{% trans "All" %}</option>
+                        <option value="male">{% trans "Male" %}</option>
+                        <option value="female">{% trans "Female" %}</option>
+                        <option value="non_binary">{% trans "Non-Binary" %}</option>
+                        <option value="other">{% trans "Other" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">{% trans "Age" %}</label>
+                    <select class="form-select" id="ageFilter">
+                        <option value="">{% trans "All" %}</option>
+                        <option value="18-24">18-24</option>
+                        <option value="25-34">25-34</option>
+                        <option value="35-44">35-44</option>
+                        <option value="45+">45+</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">{% trans "Match %" %}</label>
+                    <select class="form-select" id="matchFilter">
+                        <option value="">{% trans "All" %}</option>
+                        <option value="90">90%+</option>
+                        <option value="80">80%+</option>
+                        <option value="70">70%+</option>
+                        <option value="60">60%+</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">{% trans "Status" %}</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="">{% trans "All" %}</option>
+                        <option value="online">{% trans "Online" %}</option>
+                        <option value="new">{% trans "New (< 7 days)" %}</option>
+                        <option value="active">{% trans "Active (< 30 days)" %}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-outline-secondary me-2" id="resetFilters">{% trans "Reset" %}</button>
+                <button class="btn btn-primary" id="applyFilters">{% trans "Apply Filters" %}</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Matches List -->
+    <div class="row" id="matchesList">
+        {% if matches %}
+            {% for match in matches %}
+                <div class="col-md-4 col-lg-3 mb-4">
+                    <div class="card match-card">
+                        <div class="match-header" style="background-image: url('{% if match.profile_background %}{{ match.profile_background.url }}{% else %}https://images.unsplash.com/photo-1557683316-973673baf926?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80{% endif %}');">
+                            <div class="match-score">{{ match.compatibility_percentage }}% {% trans "Match" %}</div>
+                            <div class="match-avatar">
+                                {% if match.avatar %}
+                                    <img src="{{ match.avatar.url }}" alt="{{ match.username }}">
+                                {% else %}
+                                    {{ match.username|slice:":1"|upper }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="match-info">
+                            <h3 class="match-name">{{ match.username }}</h3>
+                            <p class="match-description">
+                                {% if match.dating_profile.bio %}
+                                    {{ match.dating_profile.bio|truncatechars:100 }}
+                                {% else %}
+                                    {% trans "No bio provided." %}
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'accounts:profile_detail' match.username %}" class="btn btn-primary btn-sm">{% trans "View Profile" %}</a>
+                            <a href="{% url 'messages:create_private_room' match.username %}" class="btn btn-outline-primary btn-sm">{% trans "Message" %}</a>
+                        </div>
+                        <div class="match-meta">
+                            <div class="match-meta-item">
+                                <span class="match-meta-label">{% trans "Age" %}</span>
+                                <span class="match-meta-value">{{ match.dating_profile.age|default:"?" }}</span>
+                            </div>
+                            <div class="match-meta-item">
+                                <span class="match-meta-label">{% trans "Gender" %}</span>
+                                <span class="match-meta-value">{{ match.dating_profile.get_gender_display }}</span>
+                            </div>
+                            <div class="match-meta-item">
+                                <span class="match-meta-label">{% trans "Location" %}</span>
+                                <span class="match-meta-value">{{ match.dating_profile.location|default:"?" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-heart-broken"></i>
+                </div>
+                <h3>{% trans "No matches found" %}</h3>
+                <p class="text-muted">{% trans "We couldn't find any matches for you yet. Try adjusting your preferences or check back later." %}</p>
+                <a href="{% url 'accounts:manage_interests' %}" class="btn btn-primary">{% trans "Update Preferences" %}</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if matches.has_other_pages %}
+    <nav aria-label="Matches pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if matches.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; {% trans "First" %}</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ matches.previous_page_number }}">{% trans "Previous" %}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">&laquo; {% trans "First" %}</span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">{% trans "Previous" %}</span>
+                </li>
+            {% endif %}
+
+            {% for i in matches.paginator.page_range %}
+                {% if matches.number == i %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ i }} <span class="sr-only">({% trans "current" %})</span></span>
+                    </li>
+                {% elif i > matches.number|add:'-3' and i < matches.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if matches.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ matches.next_page_number }}">{% trans "Next" %}</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ matches.paginator.num_pages }}">{% trans "Last" %} &raquo;</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">{% trans "Next" %}</span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">{% trans "Last" %} &raquo;</span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Use an IIFE to avoid polluting the global namespace
+  (function() {
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        // Get filter elements
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const sortSelect = document.getElementById('sortSelect');
+        const genderFilter = document.getElementById('genderFilter');
+        const ageFilter = document.getElementById('ageFilter');
+        const matchFilter = document.getElementById('matchFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const resetFiltersBtn = document.getElementById('resetFilters');
+        const applyFiltersBtn = document.getElementById('applyFilters');
+
+        // Get matches container
+        const matchesList = document.getElementById('matchesList');
+
+        // Function to apply filters
+        function applyFilters() {
+          try {
+            // Get current filter values
+            const search = searchInput ? searchInput.value.toLowerCase() : '';
+            const sort = sortSelect ? sortSelect.value : 'match';
+            const gender = genderFilter ? genderFilter.value : '';
+            const age = ageFilter ? ageFilter.value : '';
+            const matchPct = matchFilter ? matchFilter.value : '';
+            const status = statusFilter ? statusFilter.value : '';
+
+            // Here you would typically make an AJAX request to filter results
+            // For demonstration, we'll just log the filter values
+            console.log('Applying filters:', {
+              search: search,
+              sort: sort,
+              gender: gender,
+              age: age,
+              matchPct: matchPct,
+              status: status
+            });
+
+            // You would then update the UI with the filtered results
+            // For now, we'll just show an alert
+            alert('Filter functionality will be implemented in a future update.');
+          } catch (error) {
+            console.error('Error applying filters:', error);
+          }
+        }
+
+        // Function to reset filters
+        function resetFilters() {
+          try {
+            if (searchInput) searchInput.value = '';
+            if (sortSelect) sortSelect.value = 'match';
+            if (genderFilter) genderFilter.value = '';
+            if (ageFilter) ageFilter.value = '';
+            if (matchFilter) matchFilter.value = '';
+            if (statusFilter) statusFilter.value = '';
+
+            // Reset the UI to show all matches
+            // In a real implementation, you would reload the original data
+            console.log('Filters reset');
+          } catch (error) {
+            console.error('Error resetting filters:', error);
+          }
+        }
+
+        // Add event listeners
+        if (searchButton) {
+          searchButton.addEventListener('click', applyFilters);
+        }
+
+        if (searchInput) {
+          searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+              applyFilters();
+            }
+          });
+        }
+
+        if (sortSelect) {
+          sortSelect.addEventListener('change', applyFilters);
+        }
+
+        if (applyFiltersBtn) {
+          applyFiltersBtn.addEventListener('click', applyFilters);
+        }
+
+        if (resetFiltersBtn) {
+          resetFiltersBtn.addEventListener('click', resetFilters);
+        }
+      } catch (error) {
+        console.error('Error initializing match filters:', error);
+      }
+    });
+  })();
+</script>
+{% endblock %}
