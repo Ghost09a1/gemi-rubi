@@ -6,12 +6,8 @@ from django.views.generic import RedirectView
 from django.contrib.auth.decorators import login_required
 from rpg_platform.apps.messages.views import ChatMessageCreateView  # ✅
 
-
-app_name = 'messages'
-
 urlpatterns = [
     path('admin/', admin.site.urls), 
-    path('create/', ChatMessageCreateView.as_view(), name='chatmessage_create'),
 
     # Include dashboard app
     path('dashboard/', include('rpg_platform.apps.dashboard.urls')),
@@ -21,7 +17,7 @@ urlpatterns = [
 
     # Feature-specific URLs
     path('characters/', include('rpg_platform.apps.characters.urls')),
-    path('messages/', include('rpg_platform.apps.messages.urls')),
+    path('my_messages/', include('rpg_platform.apps.messages.urls')),
     path('notifications/', include('rpg_platform.apps.notifications.urls')),
     path('moderation/', include('rpg_platform.apps.moderation.urls')),
     path('recommendations/', include('rpg_platform.apps.recommendations.urls')),
