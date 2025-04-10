@@ -1,0 +1,20 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+  <h2>🧩 Your Chat Rooms</h2>
+
+  {% if rooms %}
+    <ul>
+      {% for room in rooms %}
+        <li>
+          <strong>{{ room.name }}</strong>
+          <br />
+          Members: {{ room.participants.all|join:", " }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No chat rooms found.</p>
+  {% endif %}
+
+{% endblock %}

@@ -97,3 +97,12 @@ def home(request):
         context['recommendations'] = []
 
     return render(request, 'dashboard/home.html', context)
+
+@login_required
+def room_list(request):
+    """
+    View to list all available chat rooms the user participates in.
+    """
+    user = request.user
+    rooms = ChatRoom.objects.filter(participants=user).select_related('created_by').prefetch_related('participants')
+    return render(request, 'dashboard/room_list.html', {'rooms': rooms})

@@ -10,14 +10,15 @@ urlpatterns = [
     path('admin/', admin.site.urls), 
 
     # Include dashboard app
-    path('dashboard/', include('rpg_platform.apps.dashboard.urls')),
+    path('dashboard/', include('rpg_platform.apps.dashboard.urls', namespace='dashboard')),
+    
 
     # Account management
     path('accounts/', include('rpg_platform.apps.accounts.urls')),
 
     # Feature-specific URLs
     path('characters/', include('rpg_platform.apps.characters.urls')),
-    path('messages/', include('rpg_platform.apps.messages.urls')),
+    path('messages/', include('rpg_platform.apps.messages.urls', namespace='messages')), 
     path('notifications/', include('rpg_platform.apps.notifications.urls')),
     path('moderation/', include('rpg_platform.apps.moderation.urls')),
     path('recommendations/', include('rpg_platform.apps.recommendations.urls')),
