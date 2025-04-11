@@ -1,0 +1,57 @@
+{% extends "base.html" %} {% load i18n %} {% load crispy_forms_tags %} {% block
+title %}{% trans "Manage Interests" %}{% endblock %} {% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">{% trans "Manage Interests" %}</h2>
+                </div>
+                <div class="card-body">
+                    <h3>{% trans "Current Interests" %}</h3>
+                    {% if interests %}
+                    <div class="list-group mb-4">
+                        {% for interest in interests %}
+                        <div
+                            class="list-group-item d-flex justify-content-between align-items-center"
+                        >
+                            <span
+                                >{{ interest.get_interest_type_display }}</span
+                            >
+                            <form
+                                method="post"
+                                action="{% url 'accounts:delete_interest' interest.pk %}"
+                                class="d-inline"
+                            >
+                                {% csrf_token %}
+                                <button
+                                    type="submit"
+                                    class="btn btn-danger btn-sm"
+                                >
+                                    <i class="fas fa-trash"></i> {% trans
+                                    "Remove" %}
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">
+                        {% trans "You haven't added any interests yet." %}
+                    </p>
+                    {% endif %}
+
+                    <h3>{% trans "Add New Interest" %}</h3>
+                    <form method="post">
+                        {% csrf_token %} {{ form|crispy }}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> {% trans "Add Interest"
+                            %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,387 +1,456 @@
-{% load static %}
-{% load i18n %}
+{% load static %} {% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}RoleplayHub{% endblock %}</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{% block title %}RoleplayHub{% endblock %}</title>
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Bootstrap CSS -->
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
 
-    <!-- Error Handler Script -->
-    <script src="{% static 'js/error-handler.js' %}"></script>
+        <!-- Error Handler Script -->
+        <script src="{% static 'js/error-handler.js' %}"></script>
 
-    <style>
-        :root {
-            --primary: #6c5ce7;
-            --primary-dark: #5a49c7;
-            --secondary: #fd79a8;
-            --dark: #2d3436;
-            --light: #f8f9fa;
-            --success: #00b894;
-            --warning: #fdcb6e;
-            --danger: #d63031;
-            --gray: #636e72;
-            --light-gray: #f0f2f5;
-        }
+        <style>
+            :root {
+                --primary: #6c5ce7;
+                --primary-dark: #5a49c7;
+                --secondary: #fd79a8;
+                --dark: #2d3436;
+                --light: #f8f9fa;
+                --success: #00b894;
+                --warning: #fdcb6e;
+                --danger: #d63031;
+                --gray: #636e72;
+                --light-gray: #f0f2f5;
+            }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            color: var(--dark);
-            background-color: var(--light-gray);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+            body {
+                font-family: 'Poppins', sans-serif;
+                color: var(--dark);
+                background-color: var(--light-gray);
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
 
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 600;
-        }
+            h1, h2, h3, h4, h5, h6 {
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 600;
+            }
 
-        .main-content {
-            flex: 1;
-            padding: 2rem 0;
-        }
+            .main-content {
+                flex: 1;
+                padding: 2rem 0;
+            }
 
-        .btn-primary {
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
+            .btn-primary {
+                background-color: var(--primary);
+                border-color: var(--primary);
+            }
 
-        .btn-primary:hover, .btn-primary:focus {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
-        }
+            .btn-primary:hover, .btn-primary:focus {
+                background-color: var(--primary-dark);
+                border-color: var(--primary-dark);
+            }
 
-        .btn-outline-primary {
-            color: var(--primary);
-            border-color: var(--primary);
-        }
+            .btn-outline-primary {
+                color: var(--primary);
+                border-color: var(--primary);
+            }
 
-        .btn-outline-primary:hover {
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
+            .btn-outline-primary:hover {
+                background-color: var(--primary);
+                border-color: var(--primary);
+            }
 
-        .text-primary {
-            color: var(--primary) !important;
-        }
+            .text-primary {
+                color: var(--primary) !important;
+            }
 
-        .navbar {
-            padding: 0.75rem 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            background-color: white;
-        }
+            .navbar {
+                padding: 0.75rem 0;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                background-color: white;
+            }
 
-        .navbar-brand {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 1.5rem;
-        }
+            .navbar-brand {
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 700;
+                font-size: 1.5rem;
+            }
 
-        .navbar .nav-link {
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            color: var(--dark);
-            transition: color 0.2s;
-        }
+            .navbar .nav-link {
+                font-weight: 500;
+                padding: 0.5rem 1rem;
+                color: var(--dark);
+                transition: color 0.2s;
+            }
 
-        .navbar .nav-link:hover {
-            color: var(--primary);
-        }
+            .navbar .nav-link:hover {
+                color: var(--primary);
+            }
 
-        .navbar .nav-link.active {
-            color: var(--primary);
-            position: relative;
-        }
+            .navbar .nav-link.active {
+                color: var(--primary);
+                position: relative;
+            }
 
-        .navbar .nav-link.active::after {
-            content: '';
-            position: absolute;
-            bottom: -0.75rem;
-            left: 1rem;
-            right: 1rem;
-            height: 3px;
-            background-color: var(--primary);
-        }
-
-        .navbar-nav .dropdown-menu {
-            border: none;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-radius: 8px;
-        }
-
-        .dropdown-item:active {
-            background-color: var(--primary);
-        }
-
-        .dropdown-item:hover {
-            background-color: rgba(108, 92, 231, 0.1);
-        }
-
-        .profile-dropdown .dropdown-toggle::after {
-            display: none;
-        }
-
-        .profile-dropdown .dropdown-toggle {
-            display: flex;
-            align-items: center;
-        }
-
-        .profile-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            overflow: hidden;
-            background-color: var(--light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 0.5rem;
-        }
-
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: 0;
-            right: 0;
-            transform: translate(25%, -25%);
-        }
-
-        /* Badge for notifications */
-        .badge-notification {
-            position: absolute;
-            top: 0;
-            right: 0;
-            transform: translate(50%, -50%);
-            background-color: var(--danger);
-            color: white;
-            border-radius: 50%;
-            font-size: 0.65rem;
-            width: 18px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Footer styles */
-        .footer {
-            background-color: white;
-            color: var(--gray);
-            padding: 2rem 0;
-            margin-top: auto;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .footer a {
-            color: var(--gray);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .footer a:hover {
-            color: var(--primary);
-        }
-
-        .footer-links {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .footer-links li {
-            margin-bottom: 0.5rem;
-        }
-
-        .social-links a {
-            margin-right: 1rem;
-            font-size: 1.25rem;
-        }
-
-        /* Card styles */
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 992px) {
             .navbar .nav-link.active::after {
+                content: '';
+                position: absolute;
+                bottom: -0.75rem;
+                left: 1rem;
+                right: 1rem;
+                height: 3px;
+                background-color: var(--primary);
+            }
+
+            .navbar-nav .dropdown-menu {
+                border: none;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                border-radius: 8px;
+            }
+
+            .dropdown-item:active {
+                background-color: var(--primary);
+            }
+
+            .dropdown-item:hover {
+                background-color: rgba(108, 92, 231, 0.1);
+            }
+
+            .profile-dropdown .dropdown-toggle::after {
                 display: none;
             }
-        }
 
-        /* BBCode Styles */
-        .spoiler {
-            margin: 1rem 0;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            overflow: hidden;
-        }
+            .profile-dropdown .dropdown-toggle {
+                display: flex;
+                align-items: center;
+            }
 
-        .spoiler-toggle {
-            padding: 0.75rem 1rem;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
+            .profile-avatar {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                overflow: hidden;
+                background-color: var(--light);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 0.5rem;
+            }
 
-        .spoiler-toggle:hover {
-            background-color: #e9ecef;
-        }
+            .profile-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
 
-        .spoiler-toggle.active {
-            background-color: #e9ecef;
-        }
+            .notification-badge {
+                position: absolute;
+                top: 0;
+                right: 0;
+                transform: translate(25%, -25%);
+            }
 
-        .spoiler-toggle::before {
-            content: "▶";
-            display: inline-block;
-            margin-right: 0.5rem;
-            font-size: 0.75rem;
-            transition: transform 0.2s;
-        }
+            /* Badge for notifications */
+            .badge-notification {
+                position: absolute;
+                top: 0;
+                right: 0;
+                transform: translate(50%, -50%);
+                background-color: var(--danger);
+                color: white;
+                border-radius: 50%;
+                font-size: 0.65rem;
+                width: 18px;
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
 
-        .spoiler-toggle.active::before {
-            transform: rotate(90deg);
-        }
+            /* Footer styles */
+            .footer {
+                background-color: white;
+                color: var(--gray);
+                padding: 2rem 0;
+                margin-top: auto;
+                box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            }
 
-        .spoiler-content {
-            padding: 1rem;
-            background-color: #fff;
-        }
+            .footer a {
+                color: var(--gray);
+                text-decoration: none;
+                transition: color 0.2s;
+            }
 
-        .bbcode-list {
-            padding-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
+            .footer a:hover {
+                color: var(--primary);
+            }
 
-        .bbcode-list li {
-            margin-bottom: 0.5rem;
-        }
+            .footer-links {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
 
-        /* Other BBCode styles */
-        .soundcloud-embed, .map-embed {
-            margin: 1rem 0;
-            border-radius: 4px;
-            overflow: hidden;
-        }
+            .footer-links li {
+                margin-bottom: 0.5rem;
+            }
 
-        {% block extra_css %}{% endblock %}
-    </style>
-</head>
-<body>
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'dashboard:home' %}">
-                <span class="text-primary">Roleplay</span>Hub
-            </a>
+            .social-links a {
+                margin-right: 1rem;
+                font-size: 1.25rem;
+            }
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            /* Card styles */
+            .card {
+                border: none;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
 
-            <div class="collapse navbar-collapse" id="navbarContent">
-                {% if user.is_authenticated %}
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            }
+
+            /* Custom scrollbar */
+            ::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: #c1c1c1;
+                border-radius: 4px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #a8a8a8;
+            }
+
+            /* Responsive adjustments */
+            @media (max-width: 992px) {
+                .navbar .nav-link.active::after {
+                    display: none;
+                }
+            }
+
+            /* BBCode Styles */
+            .spoiler {
+                margin: 1rem 0;
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+                overflow: hidden;
+            }
+
+            .spoiler-toggle {
+                padding: 0.75rem 1rem;
+                background-color: #f8f9fa;
+                border-bottom: 1px solid #dee2e6;
+                cursor: pointer;
+                font-weight: 500;
+                transition: background-color 0.2s;
+            }
+
+            .spoiler-toggle:hover {
+                background-color: #e9ecef;
+            }
+
+            .spoiler-toggle.active {
+                background-color: #e9ecef;
+            }
+
+            .spoiler-toggle::before {
+                content: "▶";
+                display: inline-block;
+                margin-right: 0.5rem;
+                font-size: 0.75rem;
+                transition: transform 0.2s;
+            }
+
+            .spoiler-toggle.active::before {
+                transform: rotate(90deg);
+            }
+
+            .spoiler-content {
+                padding: 1rem;
+                background-color: #fff;
+            }
+
+            .bbcode-list {
+                padding-left: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .bbcode-list li {
+                margin-bottom: 0.5rem;
+            }
+
+            /* Other BBCode styles */
+            .soundcloud-embed, .map-embed {
+                margin: 1rem 0;
+                border-radius: 4px;
+                overflow: hidden;
+            }
+
+            {% block extra_css %}{% endblock %}
+        </style>
+    </head>
+    <body>
+        <!-- Navigation Bar -->
+        <nav class="navbar navbar-expand-lg sticky-top">
+            <div class="container">
+                <a class="navbar-brand" href="{% url 'dashboard:home' %}">
+                    <span class="text-primary">Roleplay</span>Hub
+                </a>
+
+                <button
+                    class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarContent"
+                    aria-controls="navbarContent"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    {% if user.is_authenticated %}
                     <!-- Navigation for authenticated users -->
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard:home' %}">
-                                <i class="fas fa-home"></i> {% trans "Dashboard" %}
+                            <a
+                                class="nav-link {% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}"
+                                href="{% url 'dashboard:home' %}"
+                            >
+                                <i class="fas fa-home"></i> {% trans "Dashboard"
+                                %}
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.app_name == 'characters' %}active{% endif %}" href="{% url 'characters:character_list' %}">
-                                <i class="fas fa-user-circle"></i> {% trans "Characters" %}
+                            <a
+                                class="nav-link {% if request.resolver_match.app_name == 'characters' %}active{% endif %}"
+                                href="{% url 'characters:character_list' %}"
+                            >
+                                <i class="fas fa-user-circle"></i> {% trans
+                                "Characters" %}
                             </a>
                         </li>
 
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {% if request.resolver_match.app_name == 'accounts' and 'dating' in request.path %}active{% endif %}" href="#" id="datingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-heart"></i> {% trans "Dating" %}
+                            <a
+                                class="nav-link dropdown-toggle {% if request.resolver_match.app_name == 'accounts' and 'dating' in request.path %}active{% endif %}"
+                                href="#"
+                                id="datingDropdown"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                <i class="fas fa-heart"></i> {% trans "Dating"
+                                %}
                             </a>
-                            <ul class="dropdown-menu" aria-labelledby="datingDropdown">
+                            <ul
+                                class="dropdown-menu"
+                                aria-labelledby="datingDropdown"
+                            >
                                 <li>
-                                    <a class="dropdown-item" href="{% url 'accounts:browse_dating_profiles' %}">
-                                        <i class="fas fa-search"></i> {% trans "Browse Profiles" %}
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'accounts:browse_dating_profiles' %}"
+                                    >
+                                        <i class="fas fa-search"></i> {% trans
+                                        "Browse Profiles" %}
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{% url 'accounts:view_matches' %}">
-                                        <i class="fas fa-users"></i> {% trans "My Matches" %}
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'accounts:view_matches' %}"
+                                    >
+                                        <i class="fas fa-users"></i> {% trans
+                                        "My Matches" %}
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{% url 'accounts:received_likes' %}">
-                                        <i class="fas fa-thumbs-up"></i> {% trans "Received Likes" %}
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'accounts:dating_profile_detail' user.username %}">
-                                        <i class="fas fa-id-card"></i> {% trans "My Dating Profile" %}
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'accounts:received_likes' %}"
+                                    >
+                                        <i class="fas fa-thumbs-up"></i> {%
+                                        trans "Received Likes" %}
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{% url 'accounts:manage_interests' %}">
-                                        <i class="fas fa-list-ul"></i> {% trans "Manage Interests" %}
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'accounts:manage_interests' %}"
+                                    >
+                                        <i class="fas fa-star"></i> {% trans "My
+                                        Interests" %}
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'accounts:dating_profile_detail' user.username %}"
+                                    >
+                                        <i class="fas fa-id-card"></i> {% trans
+                                        "My Dating Profile" %}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'accounts:manage_interests' %}"
+                                    >
+                                        <i class="fas fa-list-ul"></i> {% trans
+                                        "Manage Interests" %}
                                     </a>
                                 </li>
                             </ul>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.app_name == 'accounts' and 'friends' in request.path %}active{% endif %}" href="{% url 'accounts:friend_list' %}">
-                                <i class="fas fa-user-friends"></i> {% trans "Friends" %}
+                            <a
+                                class="nav-link {% if request.resolver_match.app_name == 'accounts' and 'friends' in request.path %}active{% endif %}"
+                                href="{% url 'accounts:friend_list' %}"
+                            >
+                                <i class="fas fa-user-friends"></i> {% trans
+                                "Friends" %}
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.app_name == 'recommendations' %}active{% endif %}" href="{% url 'recommendations:character_recommendations' %}">
-                                <i class="fas fa-compass"></i> {% trans "Discover" %}
+                            <a
+                                class="nav-link {% if request.resolver_match.app_name == 'recommendations' %}active{% endif %}"
+                                href="{% url 'recommendations:character_recommendations' %}"
+                            >
+                                <i class="fas fa-compass"></i> {% trans
+                                "Discover" %}
                             </a>
                         </li>
                     </ul>
@@ -390,70 +459,118 @@
                     <ul class="navbar-nav ms-auto">
                         <!-- Notifications dropdown -->
                         <li class="nav-item position-relative mx-1">
-                            <a class="nav-link" href="{% url 'notifications:notification_list' %}" id="notificationsLink">
+                            <a
+                                class="nav-link"
+                                href="{% url 'notifications:notification_list' %}"
+                                id="notificationsLink"
+                            >
                                 <i class="fas fa-bell"></i>
                                 {% if notification_count > 0 %}
-                                    <span class="badge-notification">{{ notification_count }}</span>
+                                <span class="badge-notification"
+                                    >{{ notification_count }}</span
+                                >
                                 {% endif %}
                             </a>
                         </li>
 
                         <!-- User profile dropdown -->
                         <li class="nav-item dropdown profile-dropdown mx-1">
-                            <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                id="profileDropdown"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
                                 <div class="profile-avatar">
                                     {% if user.profile.avatar %}
-                                        <img src="{{ user.profile.get_avatar_url }}" alt="{{ user.username }}">
-                                    {% else %}
-                                        {{ user.username|slice:":1"|upper }}
-                                    {% endif %}
+                                    <img
+                                        src="{{ user.profile.get_avatar_url }}"
+                                        alt="{{ user.username }}"
+                                    />
+                                    {% else %} {{ user.username|slice:":1"|upper
+                                    }} {% endif %}
                                 </div>
-                                <span class="d-none d-lg-inline">{{ user.username }}</span>
+                                <span class="d-none d-lg-inline"
+                                    >{{ user.username }}</span
+                                >
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                            <ul
+                                class="dropdown-menu dropdown-menu-end"
+                                aria-labelledby="profileDropdown"
+                            >
                                 <li>
-                                    <a class="dropdown-item" href="{% url 'accounts:profile_detail' user.username %}">
-                                        <i class="fas fa-user"></i> {% trans "My Profile" %}
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'accounts:profile_detail' user.username %}"
+                                    >
+                                        <i class="fas fa-user"></i> {% trans "My
+                                        Profile" %}
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{% url 'accounts:profile_update' %}">
-                                        <i class="fas fa-edit"></i> {% trans "Edit Profile" %}
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'accounts:profile_update' %}"
+                                    >
+                                        <i class="fas fa-edit"></i> {% trans
+                                        "Edit Profile" %}
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{% url 'accounts:account_settings' %}">
-                                        <i class="fas fa-cog"></i> {% trans "Account Settings" %}
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'accounts:account_settings' %}"
+                                    >
+                                        <i class="fas fa-cog"></i> {% trans
+                                        "Account Settings" %}
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{% url 'accounts:activity_list' %}">
-                                        <i class="fas fa-history"></i> {% trans "Activity History" %}
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'accounts:activity_list' %}"
+                                    >
+                                        <i class="fas fa-history"></i> {% trans
+                                        "Activity History" %}
                                     </a>
                                 </li>
                                 {% if user.is_staff %}
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'admin:index' %}">
-                                            <i class="fas fa-shield-alt"></i> {% trans "Admin Panel" %}
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'moderation:dashboard' %}">
-                                            <i class="fas fa-gavel"></i> {% trans "Moderation" %}
-                                        </a>
-                                    </li>
-                                {% endif %}
-                                <li><hr class="dropdown-divider"></li>
+                                <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <a class="dropdown-item" href="{% url 'accounts:logout' %}">
-                                        <i class="fas fa-sign-out-alt"></i> {% trans "Logout" %}
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'admin:index' %}"
+                                    >
+                                        <i class="fas fa-shield-alt"></i> {%
+                                        trans "Admin Panel" %}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'moderation:dashboard' %}"
+                                    >
+                                        <i class="fas fa-gavel"></i> {% trans
+                                        "Moderation" %}
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'accounts:logout' %}"
+                                    >
+                                        <i class="fas fa-sign-out-alt"></i> {%
+                                        trans "Logout" %}
                                     </a>
                                 </li>
                             </ul>
                         </li>
                     </ul>
-                {% else %}
+                    {% else %}
                     <!-- Navigation for anonymous users -->
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
@@ -462,8 +579,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'landing:community_guidelines' %}">
-                                <i class="fas fa-scroll"></i> {% trans "Guidelines" %}
+                            <a
+                                class="nav-link"
+                                href="{% url 'landing:community_guidelines' %}"
+                            >
+                                <i class="fas fa-scroll"></i> {% trans
+                                "Guidelines" %}
                             </a>
                         </li>
                     </ul>
@@ -471,125 +592,183 @@
                     <!-- Auth buttons -->
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:login' %}">
-                                <i class="fas fa-sign-in-alt"></i> {% trans "Login" %}
+                            <a
+                                class="nav-link"
+                                href="{% url 'accounts:login' %}"
+                            >
+                                <i class="fas fa-sign-in-alt"></i> {% trans
+                                "Login" %}
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link btn btn-primary text-white px-3" href="{% url 'accounts:register' %}">
-                                <i class="fas fa-user-plus"></i> {% trans "Sign Up" %}
+                            <a
+                                class="nav-link btn btn-primary text-white px-3"
+                                href="{% url 'accounts:register' %}"
+                            >
+                                <i class="fas fa-user-plus"></i> {% trans "Sign
+                                Up" %}
                             </a>
                         </li>
                     </ul>
-                {% endif %}
+                    {% endif %}
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        {% if messages %}
+        <!-- Main Content -->
+        <div class="main-content">
+            {% if messages %}
             <div class="container">
                 {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
+                <div
+                    class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                    role="alert"
+                >
+                    {{ message }}
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close"
+                    ></button>
+                </div>
                 {% endfor %}
             </div>
-        {% endif %}
+            {% endif %} {% block content %}{% endblock %}
+        </div>
 
-        {% block content %}{% endblock %}
-    </div>
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <h5>{% trans "About RoleplayHub" %}</h5>
+                        <p class="small">
+                            {% trans "A platform for immersive text-based
+                            roleplaying experiences. Create characters, engage
+                            in storylines, and connect with roleplayers
+                            worldwide." %}
+                        </p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-discord"></i></a>
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <h5>{% trans "About RoleplayHub" %}</h5>
-                    <p class="small">{% trans "A platform for immersive text-based roleplaying experiences. Create characters, engage in storylines, and connect with roleplayers worldwide." %}</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-discord"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    <div class="col-md-2 col-6 mb-3 mb-md-0">
+                        <h5>{% trans "Links" %}</h5>
+                        <ul class="footer-links">
+                            <li>
+                                <a href="{% url 'dashboard:home' %}"
+                                    >{% trans "Home" %}</a
+                                >
+                            </li>
+                            <li>
+                                <a href="{% url 'characters:character_list' %}"
+                                    >{% trans "Characters" %}</a
+                                >
+                            </li>
+                            <li>
+                                <a
+                                    href="{% url 'recommendations:character_recommendations' %}"
+                                    >{% trans "Discover" %}</a
+                                >
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-2 col-6 mb-3 mb-md-0">
+                        <h5>{% trans "Legal" %}</h5>
+                        <ul class="footer-links">
+                            <li>
+                                <a href="{% url 'landing:tos' %}"
+                                    >{% trans "Terms of Service" %}</a
+                                >
+                            </li>
+                            <li>
+                                <a href="{% url 'landing:privacy' %}"
+                                    >{% trans "Privacy Policy" %}</a
+                                >
+                            </li>
+                            <li>
+                                <a
+                                    href="{% url 'landing:community_guidelines' %}"
+                                    >{% trans "Community Guidelines" %}</a
+                                >
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-4">
+                        <h5>{% trans "Need Help?" %}</h5>
+                        <p class="small">
+                            {% trans "If you have any questions or issues, feel
+                            free to contact our support team." %}
+                        </p>
+                        <a href="#" class="btn btn-outline-primary btn-sm"
+                            >{% trans "Contact Support" %}</a
+                        >
                     </div>
                 </div>
 
-                <div class="col-md-2 col-6 mb-3 mb-md-0">
-                    <h5>{% trans "Links" %}</h5>
-                    <ul class="footer-links">
-                        <li><a href="{% url 'dashboard:home' %}">{% trans "Home" %}</a></li>
-                        <li><a href="{% url 'characters:character_list' %}">{% trans "Characters" %}</a></li>
-                        <li><a href="{% url 'recommendations:character_recommendations' %}">{% trans "Discover" %}</a></li>
-                    </ul>
-                </div>
+                <hr class="my-3" />
 
-                <div class="col-md-2 col-6 mb-3 mb-md-0">
-                    <h5>{% trans "Legal" %}</h5>
-                    <ul class="footer-links">
-                        <li><a href="{% url 'landing:tos' %}">{% trans "Terms of Service" %}</a></li>
-                        <li><a href="{% url 'landing:privacy' %}">{% trans "Privacy Policy" %}</a></li>
-                        <li><a href="{% url 'landing:community_guidelines' %}">{% trans "Community Guidelines" %}</a></li>
-                    </ul>
-                </div>
-
-                <div class="col-md-4">
-                    <h5>{% trans "Need Help?" %}</h5>
-                    <p class="small">{% trans "If you have any questions or issues, feel free to contact our support team." %}</p>
-                    <a href="#" class="btn btn-outline-primary btn-sm">{% trans "Contact Support" %}</a>
+                <div class="row">
+                    <div class="col text-center">
+                        <p class="small mb-0">
+                            © {% now "Y" %} RoleplayHub. {% trans "All rights
+                            reserved." %}
+                        </p>
+                    </div>
                 </div>
             </div>
+        </footer>
 
-            <hr class="my-3">
+        <!-- Core JavaScript -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 
-            <div class="row">
-                <div class="col text-center">
-                    <p class="small mb-0">© {% now "Y" %} RoleplayHub. {% trans "All rights reserved." %}</p>
-                </div>
-            </div>
-        </div>
-    </footer>
+        <script>
+            // Global error handler to log JavaScript errors
+            window.addEventListener("error", function (e) {
+                console.error("JavaScript Error:", e.message);
+                console.error("File:", e.filename);
+                console.error("Line:", e.lineno);
+                console.error("Column:", e.colno);
+                console.error("Error object:", e.error);
 
-    <!-- Core JavaScript -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+                // Prevent the error from breaking other scripts
+                e.preventDefault();
+                return true;
+            });
 
-    <script>
-      // Global error handler to log JavaScript errors
-      window.addEventListener('error', function(e) {
-        console.error('JavaScript Error:', e.message);
-        console.error('File:', e.filename);
-        console.error('Line:', e.lineno);
-        console.error('Column:', e.colno);
-        console.error('Error object:', e.error);
+            // BBCode Spoiler Toggle
+            document.addEventListener("DOMContentLoaded", function () {
+                document.body.addEventListener("click", function (e) {
+                    if (
+                        e.target.classList.contains("spoiler-toggle") ||
+                        e.target.closest(".spoiler-toggle")
+                    ) {
+                        const spoilerToggle = e.target.classList.contains(
+                            "spoiler-toggle"
+                        )
+                            ? e.target
+                            : e.target.closest(".spoiler-toggle");
+                        const spoilerContent = spoilerToggle.nextElementSibling;
 
-        // Prevent the error from breaking other scripts
-        e.preventDefault();
-        return true;
-      });
+                        if (spoilerContent.style.display === "none") {
+                            spoilerContent.style.display = "block";
+                            spoilerToggle.classList.add("active");
+                        } else {
+                            spoilerContent.style.display = "none";
+                            spoilerToggle.classList.remove("active");
+                        }
+                    }
+                });
+            });
+        </script>
 
-      // BBCode Spoiler Toggle
-      document.addEventListener('DOMContentLoaded', function() {
-        document.body.addEventListener('click', function(e) {
-          if (e.target.classList.contains('spoiler-toggle') || e.target.closest('.spoiler-toggle')) {
-            const spoilerToggle = e.target.classList.contains('spoiler-toggle') ?
-                                 e.target :
-                                 e.target.closest('.spoiler-toggle');
-            const spoilerContent = spoilerToggle.nextElementSibling;
-
-            if (spoilerContent.style.display === 'none') {
-              spoilerContent.style.display = 'block';
-              spoilerToggle.classList.add('active');
-            } else {
-              spoilerContent.style.display = 'none';
-              spoilerToggle.classList.remove('active');
-            }
-          }
-        });
-      });
-    </script>
-
-    {% block extra_js %}{% endblock %}
-</body>
+        {% block extra_js %}{% endblock %}
+    </body>
 </html>
