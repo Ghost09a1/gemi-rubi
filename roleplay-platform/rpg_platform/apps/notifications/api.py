@@ -1,4 +1,5 @@
 from rest_framework import viewsets, filters
+from rest_framework import permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from rpg_platform.utils.api_views import BaseAPIView
 from rpg_platform.utils.serializers import BaseModelSerializer
@@ -40,6 +41,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     API endpoint for notifications
     """
 
+    queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
     permission_classes = [IsOwnerOrReadOnly]
     filter_backends = [
@@ -56,9 +58,10 @@ class NotificationViewSet(viewsets.ModelViewSet):
         """
         Return notifications for the current user
         """
-        return Notification.objects.filter(
+        return self.queryset.filter(
             user=self.request.user, is_deleted=False
         ).select_related("actor", "category")
+
 
     def perform_create(self, serializer):
         """
@@ -76,8 +79,4 @@ class NotificationCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = None
 
-    def get_queryset(self):
-        """
-        Return all notification categories
-        """
-        return NotificationCategory.objects.all().order_by("order", "name")
+    queryset = NotificationCategory.objects.all().order_by("order", "name")

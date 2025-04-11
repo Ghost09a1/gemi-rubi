@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.signals import user_logged_in
 from django.utils.translation import gettext_lazy as _
 
+from rpg_platform.apps.notifications.models import Notification
 from rpg_platform.apps.accounts.models import Profile, Friendship, FriendRequest, UserActivity
 from rpg_platform.apps.characters.models import Character, CharacterComment, CharacterRating
 from rpg_platform.apps.messages.models import ChatRoom
@@ -20,8 +21,6 @@ def create_user_profile(sender, instance, created, **kwargs):
 def notify_friend_request(sender, instance, created, **kwargs):
     """Notify user of new friend request"""
     if created:
-        from rpg_platform.apps.notifications.models import Notification
-
         # Create notification for the recipient
         Notification.objects.create(
             user=instance.to_user,
