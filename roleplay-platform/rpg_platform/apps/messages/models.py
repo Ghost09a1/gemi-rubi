@@ -7,6 +7,7 @@ class ChatRoom(models.Model):
     participants = models.ManyToManyField(User)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    room_type = models.CharField(max_length=50, default='general')
 
     def save(self, *args, **kwargs):
         """Update the updated_at field each time a message is added."""
