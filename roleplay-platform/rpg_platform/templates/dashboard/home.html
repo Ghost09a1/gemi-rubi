@@ -1,10 +1,6 @@
-{% extends "base.html" %}
-{% load i18n %}
-{% load static %}
+{% extends "base.html" %} {% load i18n %} {% load static %} {% block title %}{%
+trans "Home" %} | RoleplayHub{% endblock %}
 
-{% block title %}{% trans "Home" %} | RoleplayHub{% endblock %}
-
-{% block extra_css %}
 <style>
     :root {
         --primary-color: #6246ea;
@@ -59,7 +55,8 @@
         padding: 1.5rem;
         box-shadow: var(--box-shadow);
         text-align: center;
-        transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+        transition: transform var(--transition-speed),
+            box-shadow var(--transition-speed);
     }
 
     .stat-card:hover {
@@ -138,7 +135,8 @@
         border-radius: var(--border-radius);
         overflow: hidden;
         box-shadow: var(--box-shadow);
-        transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+        transition: transform var(--transition-speed),
+            box-shadow var(--transition-speed);
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -332,7 +330,8 @@
         border-radius: var(--border-radius);
         overflow: hidden;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+        transition: transform var(--transition-speed),
+            box-shadow var(--transition-speed);
     }
 
     .recent-item-card:hover {
@@ -390,14 +389,16 @@
         }
     }
 </style>
-{% endblock %}
 
 {% block content %}
 <div class="dashboard-container">
     <!-- Dashboard Header -->
     <div class="dashboard-header">
         <h1>{% trans "Welcome to RoleplayHub" %}</h1>
-        <p>{% trans "Your central hub for roleplay adventures, character creation, and connecting with fellow roleplayers" %}</p>
+        <p>
+            {% trans "Your central hub for roleplay adventures, character
+            creation, and connecting with fellow roleplayers" %}
+        </p>
     </div>
 
     <!-- Stats Overview -->
@@ -452,8 +453,16 @@
                         </div>
                         <div class="feature-content">
                             <h3>{% trans "Characters" %}</h3>
-                            <p>{% trans "Create and manage your roleplaying characters with detailed profiles and customization options." %}</p>
-                            <a href="{% url 'characters:character_list' %}" class="feature-link">{% trans "My Characters" %}</a>
+                            <p>
+                                {% trans "Create and manage your roleplaying
+                                characters with detailed profiles and
+                                customization options." %}
+                            </p>
+                            <a
+                                href="{% url 'characters:character_list' %}"
+                                class="feature-link"
+                                >{% trans "My Characters" %}</a
+                            >
                         </div>
                     </div>
 
@@ -463,8 +472,16 @@
                         </div>
                         <div class="feature-content">
                             <h3>{% trans "Chat Rooms" %}</h3>
-                            <p>{% trans "Join immersive chat rooms to roleplay with others or create your own private role-playing scenes." %}</p>
-                            <a href="{% url 'messages:room_list' %}" class="feature-link">{% trans "Chat Now" %}</a>
+                            <p>
+                                {% trans "Join immersive chat rooms to roleplay
+                                with others or create your own private
+                                role-playing scenes." %}
+                            </p>
+                            <a
+                                href="{% url 'messages:room_list' %}"
+                                class="feature-link"
+                                >{% trans "Chat Now" %}</a
+                            >
                         </div>
                     </div>
 
@@ -474,8 +491,16 @@
                         </div>
                         <div class="feature-content">
                             <h3>{% trans "Friends" %}</h3>
-                            <p>{% trans "Connect with other roleplayers, build your network, and find new roleplaying partners." %}</p>
-                            <a href="{% url 'accounts:friend_list' %}" class="feature-link">{% trans "Manage Friends" %}</a>
+                            <p>
+                                {% trans "Connect with other roleplayers, build
+                                your network, and find new roleplaying
+                                partners." %}
+                            </p>
+                            <a
+                                href="{% url 'accounts:friend_list' %}"
+                                class="feature-link"
+                                >{% trans "Manage Friends" %}</a
+                            >
                         </div>
                     </div>
 
@@ -485,8 +510,16 @@
                         </div>
                         <div class="feature-content">
                             <h3>{% trans "Dating App" %}</h3>
-                            <p>{% trans "Find roleplay partners with similar interests and preferences for better character interactions." %}</p>
-                            <a href="{% url 'accounts:browse_dating_profiles' %}" class="feature-link">{% trans "Find Partners" %}</a>
+                            <p>
+                                {% trans "Find roleplay partners with similar
+                                interests and preferences for better character
+                                interactions." %}
+                            </p>
+                            <a
+                                href="{% url 'accounts:browse_dating_profiles' %}"
+                                class="feature-link"
+                                >{% trans "Find Partners" %}</a
+                            >
                         </div>
                     </div>
 
@@ -496,8 +529,16 @@
                         </div>
                         <div class="feature-content">
                             <h3>{% trans "Recommendations" %}</h3>
-                            <p>{% trans "Discover new characters and roleplay partners tailored to your preferences and interests." %}</p>
-                            <a href="{% url 'recommendations:character_recommendations' %}" class="feature-link">{% trans "Explore" %}</a>
+                            <p>
+                                {% trans "Discover new characters and roleplay
+                                partners tailored to your preferences and
+                                interests." %}
+                            </p>
+                            <a
+                                href="{% url 'recommendations:character_recommendations' %}"
+                                class="feature-link"
+                                >{% trans "Explore" %}</a
+                            >
                         </div>
                     </div>
 
@@ -507,8 +548,16 @@
                         </div>
                         <div class="feature-content">
                             <h3>{% trans "Notifications" %}</h3>
-                            <p>{% trans "Stay updated on messages, comments, friend requests, and other important activities." %}</p>
-                            <a href="{% url 'notifications:notification_list' %}" class="feature-link">{% trans "View All" %}</a>
+                            <p>
+                                {% trans "Stay updated on messages, comments,
+                                friend requests, and other important
+                                activities." %}
+                            </p>
+                            <a
+                                href="{% url 'notifications:notification_list' %}"
+                                class="feature-link"
+                                >{% trans "View All" %}</a
+                            >
                         </div>
                     </div>
                 </div>
@@ -518,33 +567,45 @@
             <div class="feature-section">
                 <div class="section-header">
                     <h2>{% trans "Recent Activity" %}</h2>
-                    <a href="{% url 'accounts:activity_list' %}">{% trans "View All" %}</a>
+                    <a href="{% url 'accounts:activity_list' %}"
+                        >{% trans "View All" %}</a
+                    >
                 </div>
 
                 <div class="activity-list">
-                    {% if activities %}
-                    {% for activity in activities %}
+                    {% if activities %} {% for activity in activities %}
                     <div class="activity-item">
                         <div class="activity-avatar">
                             {% if activity.user.profile.avatar %}
-                            <img src="{{ activity.user.profile.get_avatar_url }}" alt="{{ activity.user.username }}">
-                            {% else %}
-                            {{ activity.user.username|slice:":1"|upper }}
-                            {% endif %}
+                            <img
+                                src="{{ activity.user.profile.get_avatar_url }}"
+                                alt="{{ activity.user.username }}"
+                            />
+                            {% else %} {{
+                            activity.user.username|slice:":1"|upper }} {% endif
+                            %}
                         </div>
                         <div class="activity-content">
                             <p>{{ activity.get_description }}</p>
-                            <div class="activity-time">{{ activity.created_at|timesince }} {% trans "ago" %}</div>
+                            <div class="activity-time">
+                                {{ activity.created_at|timesince }} {% trans
+                                "ago" %}
+                            </div>
                         </div>
                     </div>
-                    {% endfor %}
-                    {% else %}
-                    <p class="text-muted">{% trans "No recent activity to show." %}</p>
+                    {% endfor %} {% else %}
+                    <p class="text-muted">
+                        {% trans "No recent activity to show." %}
+                    </p>
                     {% endif %}
                 </div>
 
                 {% if activities %}
-                <a href="{% url 'accounts:activity_list' %}" class="btn-view-all mt-3">{% trans "View All Activity" %}</a>
+                <a
+                    href="{% url 'accounts:activity_list' %}"
+                    class="btn-view-all mt-3"
+                    >{% trans "View All Activity" %}</a
+                >
                 {% endif %}
             </div>
         </div>
@@ -555,13 +616,17 @@
             <div class="feature-section notifications-section">
                 <div class="section-header">
                     <h2>{% trans "Notifications" %}</h2>
-                    <a href="{% url 'notifications:notification_list' %}">{% trans "View All" %}</a>
+                    <a href="{% url 'notifications:notification_list' %}"
+                        >{% trans "View All" %}</a
+                    >
                 </div>
 
                 <div class="notifications-list">
-                    {% if notifications %}
-                    {% for notification in notifications %}
-                    <div class="notification-item {% if not notification.read %}unread{% endif %}">
+                    {% if notifications %} {% for notification in notifications
+                    %}
+                    <div
+                        class="notification-item {% if not notification.read %}unread{% endif %}"
+                    >
                         <div class="notification-content">
                             <div class="notification-icon">
                                 {% if notification.type == 'message' %}
@@ -578,18 +643,26 @@
                             </div>
                             <div class="notification-text">
                                 <p>{{ notification.message }}</p>
-                                <div class="notification-time">{{ notification.created_at|timesince }} {% trans "ago" %}</div>
+                                <div class="notification-time">
+                                    {{ notification.created_at|timesince }} {%
+                                    trans "ago" %}
+                                </div>
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
-                    {% else %}
-                    <p class="text-muted">{% trans "No notifications to show." %}</p>
+                    {% endfor %} {% else %}
+                    <p class="text-muted">
+                        {% trans "No notifications to show." %}
+                    </p>
                     {% endif %}
                 </div>
 
                 {% if notifications %}
-                <a href="{% url 'notifications:notification_list' %}" class="btn-view-all mt-3">{% trans "View All Notifications" %}</a>
+                <a
+                    href="{% url 'notifications:notification_list' %}"
+                    class="btn-view-all mt-3"
+                    >{% trans "View All Notifications" %}</a
+                >
                 {% endif %}
             </div>
 
@@ -598,7 +671,9 @@
             <div class="feature-section">
                 <div class="section-header">
                     <h2>{% trans "Friend Requests" %}</h2>
-                    <a href="{% url 'accounts:friend_request_list' %}">{% trans "View All" %}</a>
+                    <a href="{% url 'accounts:friend_request_list' %}"
+                        >{% trans "View All" %}</a
+                    >
                 </div>
 
                 <div class="friend-requests-list">
@@ -606,20 +681,33 @@
                     <div class="activity-item">
                         <div class="activity-avatar">
                             {% if request.from_user.profile.avatar %}
-                            <img src="{{ request.from_user.profile.get_avatar_url }}" alt="{{ request.from_user.username }}">
-                            {% else %}
-                            {{ request.from_user.username|slice:":1"|upper }}
-                            {% endif %}
+                            <img
+                                src="{{ request.from_user.profile.get_avatar_url }}"
+                                alt="{{ request.from_user.username }}"
+                            />
+                            {% else %} {{
+                            request.from_user.username|slice:":1"|upper }} {%
+                            endif %}
                         </div>
                         <div class="activity-content">
-                            <p>{{ request.from_user.profile.get_display_name }} {% trans "sent you a friend request" %}</p>
-                            <div class="activity-time">{{ request.created_at|timesince }} {% trans "ago" %}</div>
+                            <p>
+                                {{ request.from_user.profile.get_display_name }}
+                                {% trans "sent you a friend request" %}
+                            </p>
+                            <div class="activity-time">
+                                {{ request.created_at|timesince }} {% trans
+                                "ago" %}
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
 
-                <a href="{% url 'accounts:friend_request_list' %}" class="btn-view-all mt-3">{% trans "View All Requests" %}</a>
+                <a
+                    href="{% url 'accounts:friend_request_list' %}"
+                    class="btn-view-all mt-3"
+                    >{% trans "View All Requests" %}</a
+                >
             </div>
             {% endif %}
 
@@ -627,39 +715,63 @@
             <div class="feature-section">
                 <div class="section-header">
                     <h2>{% trans "Your Characters" %}</h2>
-                    <a href="{% url 'characters:character_list' %}">{% trans "View All" %}</a>
+                    <a href="{% url 'characters:character_list' %}"
+                        >{% trans "View All" %}</a
+                    >
                 </div>
 
                 <div class="recent-items-list">
-                    {% if characters %}
-                    {% for character in characters %}
-                    <a href="{% url 'characters:character_detail' character.id %}" class="text-decoration-none">
+                    {% if characters %} {% for character in characters %}
+                    <a
+                        href="{% url 'characters:character_detail' character.id %}"
+                        class="text-decoration-none"
+                    >
                         <div class="recent-item-card">
                             <div class="recent-item-img">
                                 {% if character.has_images %}
-                                <img src="{{ character.get_primary_image.image.url }}" alt="{{ character.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img
+                                    src="{{ character.get_primary_image.image.url }}"
+                                    alt="{{ character.name }}"
+                                    style="
+                                        width: 100%;
+                                        height: 100%;
+                                        object-fit: cover;
+                                    "
+                                />
                                 {% else %}
                                 <i class="fas fa-user-circle fa-3x"></i>
                                 {% endif %}
                             </div>
                             <div class="recent-item-content">
-                                <div class="recent-item-title">{{ character.name }}</div>
+                                <div class="recent-item-title">
+                                    {{ character.name }}
+                                </div>
                                 <div class="recent-item-meta">
-                                    {{ character.gender }} · {{ character.species }}
+                                    {{ character.gender }} · {{
+                                    character.species }}
                                 </div>
                             </div>
                         </div>
                     </a>
-                    {% endfor %}
-                    {% else %}
-                    <p class="text-muted">{% trans "You haven't created any characters yet." %}</p>
+                    {% endfor %} {% else %}
+                    <p class="text-muted">
+                        {% trans "You haven't created any characters yet." %}
+                    </p>
                     {% endif %}
                 </div>
 
                 {% if characters %}
-                <a href="{% url 'characters:character_list' %}" class="btn-view-all mt-3">{% trans "View All Characters" %}</a>
+                <a
+                    href="{% url 'characters:character_list' %}"
+                    class="btn-view-all mt-3"
+                    >{% trans "View All Characters" %}</a
+                >
                 {% else %}
-                <a href="{% url 'characters:character_create' %}" class="btn-view-all mt-3">{% trans "Create Your First Character" %}</a>
+                <a
+                    href="{% url 'characters:character_create' %}"
+                    class="btn-view-all mt-3"
+                    >{% trans "Create Your First Character" %}</a
+                >
                 {% endif %}
             </div>
 
@@ -667,53 +779,61 @@
             <div class="feature-section">
                 <div class="section-header">
                     <h2>{% trans "Active Chats" %}</h2>
-                    <a href="{% url 'messages:room_list' %}">{% trans "View All" %}</a>
+                    <a href="{% url 'messages:room_list' %}"
+                        >{% trans "View All" %}</a
+                    >
                 </div>
 
                 <div class="chatroom-list">
-                    {% if chat_rooms %}
-                    {% for room in chat_rooms %}
-                    <a href="{% url 'messages:room_detail' room.id %}" class="text-decoration-none">
+                    {% if chat_rooms %} {% for room in chat_rooms %}
+                    <a
+                        href="{% url 'messages:room_detail' room.id %}"
+                        class="text-decoration-none"
+                    >
                         <div class="activity-item">
                             <div class="activity-avatar">
-                                {% if room.name %}
-                                {{ room.name|slice:":1"|upper }}
-                                {% else %}
+                                {% if room.name %} {{ room.name|slice:":1"|upper
+                                }} {% else %}
                                 <i class="fas fa-comments"></i>
                                 {% endif %}
                             </div>
                             <div class="activity-content">
                                 <p>
-                                    {% if room.name %}
-                                    {{ room.name }}
-                                    {% else %}
-                                    {% for participant in room.participants.all %}
-                                    {% if participant != user %}
-                                    {{ participant.username }}{% if not forloop.last %}, {% endif %}
-                                    {% endif %}
-                                    {% endfor %}
-                                    {% endif %}
+                                    {% if room.name %} {{ room.name }} {% else
+                                    %} {% for participant in
+                                    room.participants.all %} {% if participant
+                                    != user %} {{ participant.username }} {% if
+                                    not forloop.last %}, {% endif %} {% endif %}
+                                    {% endfor %} {% endif %}
                                 </p>
                                 <div class="activity-time">
-                                    {% if room.last_message_time %}
-                                    {{ room.last_message_time|timesince }} {% trans "ago" %}
-                                    {% else %}
-                                    {% trans "No messages yet" %}
-                                    {% endif %}
+                                    {% if room.last_message_time %} {{
+                                    room.last_message_time|timesince }} {% trans
+                                    "ago" %} {% else %} {% trans "No messages
+                                    yet" %} {% endif %}
                                 </div>
                             </div>
                         </div>
                     </a>
-                    {% endfor %}
-                    {% else %}
-                    <p class="text-muted">{% trans "You don't have any active chat rooms." %}</p>
+                    {% endfor %} {% else %}
+                    <p class="text-muted">
+                        {% trans "You don't have any active chat rooms." %}
+                    </p>
                     {% endif %}
                 </div>
 
                 {% if chat_rooms %}
-                <a href="{% url 'messages:room_list' %}" class="btn-view-all mt-3">{% trans "View All Chats" %}</a>
+                <a
+                    href="{% url 'messages:room_list' %}"
+                    class="btn-view-all mt-3"
+                    >{% trans "View All Chats" %}</a
+                >
                 {% else %}
-                <a href="{% url 'messages:room_create' %}" class="btn-view-all mt-3">{% trans "Start a New Chat" %}</a>
+                <a
+                    href="{% url 'messages:room_create' %}"
+                    class="btn-view-all mt-3"
+                    >{% trans "Start a New Chat" %}</a
+                >
                 {% endif %}
             </div>
         </div>

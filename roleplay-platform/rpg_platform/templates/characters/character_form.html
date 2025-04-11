@@ -1,10 +1,4 @@
 {% extends "base.html" %} {% load i18n %} {% load static %} {% load form_tags %}
-{% block title %} {% if form.instance.pk %} {% trans "Edit Character" %} {% else
-%} {% trans "Create Character" %} {% endif %} {% endblock %} {% block extra_css
-%}
-<!-- Include the debug script -->
-<script src="{% static 'js/debug.js' %}"></script>
-
 <style>
     .form-section {
         margin-bottom: 2rem;
@@ -24,7 +18,7 @@
         padding: 1rem;
         background-color: #fff;
         border: 1px solid #ced4da;
-        border-radius: 0.25rem;
+        border-radius: 0.25 rem;
         min-height: 200px;
     }
 
@@ -130,7 +124,9 @@
         width: 100%;
     }
 </style>
-{% endblock %} {% block content %}
+<script src="{% static 'js/debug.js' %}"></script>
+{% block title %} {% if form.instance.pk %} {% trans "Edit Character" %} {% else
+%} {% trans "Create Character" %} {% endif %} {% endblock %} {% block content %}
 <div class="container mt-4">
     <h1>
         {% if form.instance.pk %} {% trans "Edit Character" %} {% else %} {%
@@ -157,7 +153,9 @@
                             >{{ form.name.label }}</label
                         >
                         {{ form.name|add_class:'form-control'|attr:'required' }}
-                        <div class="invalid-feedback"></div>
+                        <div class="invalid-feedback">
+                            Please fill in this field.
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -173,11 +171,10 @@
                             {% for error in form.gender.errors %} {{ error }} {%
                             endfor %}
                         </div>
-                        {% else %}
-                        <div class="invalid-feedback">
-                            <!-- Empty feedback for validation -->
-                        </div>
                         {% endif %}
+                        <div class="invalid-feedback">
+                            Please fill in this field.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -191,7 +188,9 @@
                         >
                         {{ form.species|add_class:'form-select'|attr:'required'
                         }}
-                        <div class="invalid-feedback"></div>
+                        <div class="invalid-feedback">
+                            Please fill in this field.
+                        </div>
                     </div>
                 </div>
 
@@ -221,7 +220,9 @@
                         {{
                         form.body_type|add_class:'form-select'|attr:'required'
                         }}
-                        <div class="invalid-feedback"></div>
+                        <div class="invalid-feedback">
+                            Please fill in this field.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -249,7 +250,9 @@
                             >{{ form.age.label }}</label
                         >
                         {{ form.age|add_class:'form-select'|attr:'required' }}
-                        <div class="invalid-feedback"></div>
+                        <div class="invalid-feedback">
+                            Please fill in this field.
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -262,7 +265,9 @@
                         {{
                         form.current_status|add_class:'form-select'|attr:'required'
                         }}
-                        <div class="invalid-feedback"></div>
+                        <div class="invalid-feedback">
+                            Please fill in this field.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -321,7 +326,9 @@
                         {{
                         form.description|add_class:'form-control'|attr:'required'
                         }}
-                        <div class="invalid-feedback"></div>
+                        <div class="invalid-feedback">
+                            Please fill in this field.
+                        </div>
                     </div>
                 </div>
             </div>

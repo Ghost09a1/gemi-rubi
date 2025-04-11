@@ -38,7 +38,7 @@
             }
 
             body {
-                font-family: 'Poppins', sans-serif;
+                font-family: "Poppins", sans-serif;
                 color: var(--dark);
                 background-color: var(--light-gray);
                 min-height: 100vh;
@@ -46,8 +46,13 @@
                 flex-direction: column;
             }
 
-            h1, h2, h3, h4, h5, h6 {
-                font-family: 'Montserrat', sans-serif;
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                font-family: "Montserrat", sans-serif;
                 font-weight: 600;
             }
 
@@ -61,7 +66,8 @@
                 border-color: var(--primary);
             }
 
-            .btn-primary:hover, .btn-primary:focus {
+            .btn-primary:hover,
+            .btn-primary:focus {
                 background-color: var(--primary-dark);
                 border-color: var(--primary-dark);
             }
@@ -87,7 +93,7 @@
             }
 
             .navbar-brand {
-                font-family: 'Montserrat', sans-serif;
+                font-family: "Montserrat", sans-serif;
                 font-weight: 700;
                 font-size: 1.5rem;
             }
@@ -109,7 +115,7 @@
             }
 
             .navbar .nav-link.active::after {
-                content: '';
+                content: "";
                 position: absolute;
                 bottom: -0.75rem;
                 left: 1rem;
@@ -120,7 +126,7 @@
 
             .navbar-nav .dropdown-menu {
                 border: none;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
                 border-radius: 8px;
             }
 
@@ -221,13 +227,13 @@
             .card {
                 border: none;
                 border-radius: 10px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
                 transition: transform 0.2s, box-shadow 0.2s;
             }
 
             .card:hover {
                 transform: translateY(-5px);
-                box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             }
 
             /* Custom scrollbar */
@@ -307,13 +313,12 @@
             }
 
             /* Other BBCode styles */
-            .soundcloud-embed, .map-embed {
+            .soundcloud-embed,
+            .map-embed {
                 margin: 1rem 0;
                 border-radius: 4px;
                 overflow: hidden;
             }
-
-            {% block extra_css %}{% endblock %}
         </style>
     </head>
     <body>
