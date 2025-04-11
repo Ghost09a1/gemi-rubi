@@ -520,10 +520,10 @@ export default function CreateCharacterPage() {
                     <div>
                       <h3 className="text-lg font-medium mb-3 text-blue-400">Basic Information</h3>
                       <div className="bg-slate-700/50 rounded-md p-4 mb-6">
-                        <p className="mb-2"><span className="font-medium">Name:</span> {formData.name}</p>
-                        <p className="mb-2"><span className="font-medium">Species:</span> {formData.species}</p>
-                        <p className="mb-2"><span className="font-medium">Gender:</span> {formData.gender}</p>
-                        <p><span className="font-medium">Age:</span> {formData.age || "Not specified"}</p>
+                        <div className="mb-2"><span className="font-medium">Name:</span> {formData.name}</div>
+                        <div className="mb-2"><span className="font-medium">Species:</span> {formData.species}</div>
+                        <div className="mb-2"><span className="font-medium">Gender:</span> {formData.gender}</div>
+                        <div><span className="font-medium">Age:</span> {formData.age || "Not specified"}</div>
                       </div>
 
                       <h3 className="text-lg font-medium mb-3 text-blue-400">Appearance</h3>
@@ -535,8 +535,8 @@ export default function CreateCharacterPage() {
 
                         {formData.appearanceDescription && (
                           <div className="mt-3 border-t border-slate-600 pt-3">
-                            <p className="font-medium mb-1">Detailed Appearance:</p>
-                            <p className="text-sm text-slate-300">{formData.appearanceDescription}</p>
+                            <div className="font-medium mb-1">Detailed Appearance:</div>
+                            <div className="text-sm text-slate-300">{formData.appearanceDescription}</div>
                           </div>
                         )}
                       </div>
@@ -556,21 +556,21 @@ export default function CreateCharacterPage() {
 
                       <h3 className="text-lg font-medium mb-3 text-blue-400">Personality</h3>
                       <div className="bg-slate-700/50 rounded-md p-4 mb-6">
-                        <p className="text-sm text-slate-300">{formData.personality}</p>
+                        <div className="text-sm text-slate-300">{formData.personality}</div>
                       </div>
 
                       {formData.background && (
-                        <>
+                        <div>
                           <h3 className="text-lg font-medium mb-3 text-blue-400">Background</h3>
                           <div className="bg-slate-700/50 rounded-md p-4 mb-6">
-                            <p className="text-sm text-slate-300">{formData.background}</p>
+                            <div className="text-sm text-slate-300">{formData.background}</div>
                           </div>
-                        </>
+                        </div>
                       )}
 
                       {/* Add Kink Preferences Review */}
                       {formData.kinkPreferences.length > 0 && (
-                        <>
+                        <div>
                           <h3 className="text-lg font-medium mb-3 text-blue-400">Kink Preferences</h3>
                           <div className="bg-slate-700/50 rounded-md p-4">
                             <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-1">
@@ -586,7 +586,7 @@ export default function CreateCharacterPage() {
                                 };
 
                                 return (
-                                  <li key={pref.kinkId} className="text-sm flex items-center py-1">
+                                  <li key={kink.id} className="text-sm flex items-center py-1">
                                     <span className={`font-medium ${ratingColors[pref.rating]}`}>
                                       {pref.rating.charAt(0).toUpperCase() + pref.rating.slice(1)}:
                                     </span>
@@ -598,10 +598,10 @@ export default function CreateCharacterPage() {
                               })}
                             </ul>
                             {formData.kinkPreferences.length === 0 && (
-                              <p className="text-sm text-slate-300">No kink preferences have been set.</p>
+                              <div className="text-sm text-slate-300">No kink preferences have been set.</div>
                             )}
                           </div>
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>

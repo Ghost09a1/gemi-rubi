@@ -18,8 +18,8 @@ export const mockCharacters: Character[] = [
     views: 156,
     createdAt: '2023-04-15T14:00:00Z',
     updatedAt: '2024-03-01T09:30:00Z',
-    currentStatus: 'available',
-    currentMood: 'mysterious',
+    currentStatus: 'available', 
+    currentMood: 'shy',
     allowRandomRp: true,
     contentPreferences: {
       preferredScenarios: ['magical studies', 'ancient ruins exploration', 'magical duels'],
@@ -90,8 +90,8 @@ export const mockCharacters: Character[] = [
     views: 183,
     createdAt: '2023-03-05T21:45:00Z',
     updatedAt: '2024-03-15T18:20:00Z',
-    currentStatus: 'available',
-    currentMood: 'brooding',
+    currentStatus: 'available', 
+    currentMood: 'shy',
     allowRandomRp: true,
     contentPreferences: {
       preferredScenarios: ['masquerade balls', 'secret vampire societies', 'historical settings', 'hunting'],
@@ -114,8 +114,8 @@ export const mockCharacters: Character[] = [
     views: 245,
     createdAt: '2023-05-18T08:30:00Z',
     updatedAt: '2024-02-28T16:15:00Z',
-    currentStatus: 'busy',
-    currentMood: 'arrogant',
+    currentStatus: 'busy', 
+    currentMood: 'confident',
     allowRandomRp: false,
     contentPreferences: {
       preferredScenarios: ['treasure hunting', 'aerial combat', 'ancient ruins exploration', 'dealing with dragon hunters'],

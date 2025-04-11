@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { CharacterContentPreferences } from '@/types/content-preferences';
 import { Character, CharacterSummary, CharacterImage, CharacterCreateRequest, CharacterUpdateRequest, ImageUploadRequest } from '@/types/characters';
 import { characterService } from '@/services/characters/character.service';
 import { useAuth } from './AuthContext';
@@ -10,6 +11,7 @@ import { useAuth } from './AuthContext';
 type CharacterContextType = {
   userCharacters: CharacterSummary[];
   currentCharacter: Character | null;
+  characterKinks: CharacterContentPreferences | null;
   characterImages: CharacterImage[];
   isLoading: boolean;
   error: string | null;
@@ -28,6 +30,13 @@ type CharacterContextType = {
   setImageAsPrimary: (imageId: string) => Promise<boolean>;
   reorderImages: (characterId: string, imageIds: string[]) => Promise<CharacterImage[]>;
 
+  // Kink actions
+  loadCharacterKinks: (characterId: string) => Promise<void>;
+  updateCharacterKinks: (characterId: string, kinks: CharacterContentPreferences) => Promise<void>;
+  addCustomKink: (characterId: string, kinkData: any) => Promise<void>;
+  updateCustomKink: (characterId: string, kinkId: string, kinkData: any) => Promise<void>;
+  deleteCustomKink: (characterId: string, kinkId: string) => Promise<void>;
+
   // Selection actions
   setCurrentCharacter: (character: Character | null) => void;
   clearError: () => void;
@@ -37,6 +46,7 @@ type CharacterContextType = {
 const CharacterContext = createContext<CharacterContextType>({
   userCharacters: [],
   currentCharacter: null,
+  characterKinks: null,
   characterImages: [],
   isLoading: false,
   error: null,
@@ -53,6 +63,12 @@ const CharacterContext = createContext<CharacterContextType>({
   setImageAsPrimary: async () => false,
   reorderImages: async () => [],
 
+  loadCharacterKinks: async () => { },
+  updateCharacterKinks: async () => { },
+  addCustomKink: async () => { },
+  updateCustomKink: async () => { },
+  deleteCustomKink: async () => { },
+
   setCurrentCharacter: () => {},
   clearError: () => {},
 });
@@ -60,6 +76,7 @@ const CharacterContext = createContext<CharacterContextType>({
 // Provider component
 export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [userCharacters, setUserCharacters] = useState<CharacterSummary[]>([]);
+  const [characterKinks, setCharacterKinks] = useState<CharacterContentPreferences | null>(null);
   const [currentCharacter, setCurrentCharacter] = useState<Character | null>(null);
   const [characterImages, setCharacterImages] = useState<CharacterImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -85,7 +102,7 @@ export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ child
       const characters = await characterService.getUserCharacters(user.id);
       setUserCharacters(characters);
     } catch (err: any) {
-      setError(err.message || 'Failed to load characters');
+      setError(err.message || 'Failed to load your characters. There might be a problem with the server or your internet connection.');
       console.error('Error loading characters:', err);
     } finally {
       setIsLoading(false);
@@ -101,11 +118,15 @@ export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ child
       const character = await characterService.getCharacter(id);
       if (character) {
         setCurrentCharacter(character);
+        if (character.contentPreferences) {
+          setCharacterKinks(character.contentPreferences);
+        }
+
         return character;
       }
       return null;
     } catch (err: any) {
-      setError(err.message || 'Failed to load character');
+      setError(err.message || 'Failed to load the character. Please check the character ID or try again later.');
       console.error('Error loading character:', err);
       return null;
     } finally {
@@ -129,7 +150,7 @@ export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ child
       setCurrentCharacter(newCharacter);
       return newCharacter;
     } catch (err: any) {
-      setError(err.message || 'Failed to create character');
+      setError(err.message || 'Failed to create the new character. Please check the entered data and try again.');
       console.error('Error creating character:', err);
       return null;
     } finally {
@@ -159,7 +180,7 @@ export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ child
 
       return updatedCharacter;
     } catch (err: any) {
-      setError(err.message || 'Failed to update character');
+      setError(err.message || 'Failed to update the character. Please verify the data and try again.');
       console.error('Error updating character:', err);
       return null;
     } finally {
@@ -185,7 +206,7 @@ export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ child
 
       return true;
     } catch (err: any) {
-      setError(err.message || 'Failed to delete character');
+      setError(err.message || 'Failed to delete the character. The character may no longer exist, or there might be an issue with the server.');
       console.error('Error deleting character:', err);
       return false;
     } finally {
@@ -203,7 +224,7 @@ export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ child
       setCharacterImages(images);
       return images;
     } catch (err: any) {
-      setError(err.message || 'Failed to load character images');
+      setError(err.message || 'Failed to load the character images. Please verify the character ID or try again.');
       console.error('Error loading character images:', err);
       return [];
     } finally {
@@ -232,7 +253,7 @@ export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ child
 
       return newImage;
     } catch (err: any) {
-      setError(err.message || 'Failed to upload image');
+      setError(err.message || 'Failed to upload the image. Please check the image file and try again.');
       console.error('Error uploading image:', err);
       return null;
     } finally {
@@ -279,7 +300,7 @@ export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ child
 
       return true;
     } catch (err: any) {
-      setError(err.message || 'Failed to delete image');
+      setError(err.message || 'Failed to delete the image. The image may no longer exist, or there might be an issue with the server.');
       console.error('Error deleting image:', err);
       return false;
     } finally {
@@ -323,7 +344,7 @@ export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ child
 
       return true;
     } catch (err: any) {
-      setError(err.message || 'Failed to set image as primary');
+      setError(err.message || 'Failed to set the image as primary. Please try again or check the image list.');
       console.error('Error setting image as primary:', err);
       return false;
     } finally {
@@ -345,9 +366,89 @@ export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ child
       setCharacterImages(sortedImages);
       return sortedImages;
     } catch (err: any) {
-      setError(err.message || 'Failed to reorder images');
+      setError(err.message || 'Failed to reorder the images. Please try again or refresh the page.');
       console.error('Error reordering images:', err);
       return [];
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load character kinks
+  const loadCharacterKinks = async (characterId: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // This call doesnt exist in character service, probably should be add in the future
+      // const kinks = await characterService.getCharacterKinks(characterId);
+      // setCharacterKinks(kinks);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load the character kinks. Please try again later or check your connection.');
+      console.error('Error loading character kinks:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Update character kinks
+  const updateCharacterKinks = async (characterId: string, kinks: CharacterContentPreferences) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await characterService.updateCharacterKinks(characterId, kinks);
+      setCharacterKinks(kinks);
+    } catch (err: any) {
+      setError(err.message || 'Failed to update the character kinks. Please verify the data and try again.');
+      console.error('Error updating character kinks:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Add custom kink
+  const addCustomKink = async (characterId: string, kinkData: any) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await characterService.addCustomKink(characterId, kinkData);
+      // Optionally, refresh kinks after adding
+      await loadCharacterKinks(characterId);
+    } catch (err: any) {
+      setError(err.message || 'Failed to add the custom kink. Please verify the data and try again.');
+      console.error('Error adding custom kink:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Update custom kink
+  const updateCustomKink = async (characterId: string, kinkId: string, kinkData: any) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await characterService.updateCustomKink(characterId, kinkId, kinkData);
+      // Optionally, refresh kinks after updating
+      await loadCharacterKinks(characterId);
+    } catch (err: any) {
+      setError(err.message || 'Failed to update the custom kink. Please verify the data and try again.');
+      console.error('Error updating custom kink:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Delete custom kink
+  const deleteCustomKink = async (characterId: string, kinkId: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await characterService.deleteCustomKink(characterId, kinkId);
+    } catch (error: any) {
+      setError(error.message || 'Failed to delete the custom kink. The kink may no longer exist, or there might be an issue with the server.');
+      console.error('Error deleting custom kink:', error);
     } finally {
       setIsLoading(false);
     }
@@ -361,6 +462,7 @@ export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ child
   const contextValue = {
     userCharacters,
     currentCharacter,
+    characterKinks,
     characterImages,
     isLoading,
     error,
@@ -376,6 +478,12 @@ export const CharacterProvider: React.FC<{children: React.ReactNode}> = ({ child
     deleteImage,
     setImageAsPrimary,
     reorderImages,
+
+    loadCharacterKinks,
+    updateCharacterKinks,
+    addCustomKink,
+    updateCustomKink,
+    deleteCustomKink,
 
     setCurrentCharacter,
     clearError,
